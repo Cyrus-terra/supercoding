@@ -37,7 +37,7 @@ class RepositoryTests(unittest.TestCase):
     def test_valid_repository(self):
         errors, stats = VALIDATOR.validate(self.repo)
         self.assertEqual(errors, [])
-        self.assertEqual(stats["eval_cases"], 20)
+        self.assertEqual(stats["eval_cases"], 22)
         self.assertEqual(stats["reference_files"], 8)
 
     def test_standalone_skill_needs_no_repository_resources(self):
@@ -85,6 +85,16 @@ class RepositoryTests(unittest.TestCase):
         data["evals"][1]["id"] = data["evals"][0]["id"]
         path.write_text(json.dumps(data), encoding="utf-8")
         self.assert_invalid("id must be unique")
+
+    def test_judgment_scenario_categories_are_required(self):
+        path = self.repo / "tests/evals/evals.json"
+        original = json.loads(path.read_text(encoding="utf-8"))
+        for category in ("debugging-hypothesis", "review-feedback-validation"):
+            with self.subTest(category=category):
+                data = {**original, "evals": [case for case in original["evals"] if case["category"] != category]}
+                path.write_text(json.dumps(data), encoding="utf-8")
+                self.assert_invalid("Missing scenario categories: " + category)
+        path.write_text(json.dumps(original), encoding="utf-8")
 
     def test_broken_documentation_link(self):
         path = self.repo / "README.md"
@@ -263,8 +273,8 @@ class RepositoryTests(unittest.TestCase):
 
     def test_scenario_assertion_count(self):
         cases = json.loads((self.repo / "tests/evals/evals.json").read_text(encoding="utf-8"))["evals"]
-        self.assertEqual(len(cases), 20)
-        self.assertEqual(sum(len(case["assertions"]) for case in cases), 72)
+        self.assertEqual(len(cases), 22)
+        self.assertEqual(sum(len(case["assertions"]) for case in cases), 83)
 
     def test_only_public_guides_have_translations(self):
         actual = {str(path.relative_to(self.repo)) for path in self.repo.rglob("*.zh-CN.*")}
@@ -278,7 +288,7 @@ class RepositoryTests(unittest.TestCase):
             cwd=self.temporary.name,
             capture_output=True, text=True, timeout=10, check=True,
         )
-        self.assertIn("20 scenarios", result.stdout)
+        self.assertIn("22 scenarios", result.stdout)
         self.assertIn("NOT evaluated", result.stdout)
 
 

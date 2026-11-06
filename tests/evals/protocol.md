@@ -16,7 +16,9 @@ Passing the first two levels is not passed behavior evaluation. Skill maintenanc
 - `files` identifies fixture paths the evaluator must prepare, not bundled files or paths available on the current machine.
 - `reference_files` identifies supporting resources relative to the Skill root, not a rigid exact read set. Reasonable equivalent routing is acceptable.
 - `assertions` score observable behavior, code results and honest reporting, not similarity of wording.
-- The scenario set contains 20 cases and 72 assertions. All cases reference the same English rules; do not count translated variants as independent coverage.
+- The scenario set contains 22 cases and 83 assertions. All cases reference the same English rules; do not count translated variants as independent coverage.
+
+The debugging and review-feedback cases describe fixtures to prepare; they are not bundled runnable examples. For debugging, retain the pre-fix reproduction and the experiment that distinguishes competing causes. For review feedback, retain the relevant freshness/authorization requirements and check each accepted or rejected suggestion against them. For refactoring, compare the same behavior and observable side effects before/after; UI cases need an integrated user journey, and performance cases need comparable measurements. These additions remain behavior-unverified until actual client runs provide evidence.
 
 ## Behavior evaluation procedure
 
@@ -54,6 +56,8 @@ Requires Python 3.9+ and Node.js 18+. Client mode additionally requires the chos
 The fixtures should fail before implementation. A successful baseline-only runner exit means the defects reproduced, not that the implementations passed. Client runs must change the implementation, preserve checks and pass the independent checks. Inspect the saved tool trace for Skill discovery, entry/reference use and unrelated changes; passing code checks alone does not establish these. The client is explicitly asked to use the Skill, so these examples do not measure automatic triggering or establish a with/without-Skill comparison. Retain sanitized results only; raw client logs may contain local paths or account metadata.
 
 ## Observed local results (2026-11-06)
+
+The following records describe earlier runs and their then-current scenario/test counts, not verification of later rule or scenario additions.
 
 | Check | Observed result | Limit |
 | --- | --- | --- |

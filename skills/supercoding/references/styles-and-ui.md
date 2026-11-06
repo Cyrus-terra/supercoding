@@ -44,6 +44,6 @@ Within the actual supported range, check:
 
 ## Verification and evidence
 
-When runtime/browser tools are available, exercise the actual change and representative states, inspecting screenshots or existing visual tests. Expand shared-style checks to representative consumers. Distinguish static inspection, current-browser checks and target-environment checks.
+When runtime/browser tools are available, exercise the affected user journey, not just the new widget in isolation: reach it through the existing page, perform the action, observe results and failure/retry feedback, and confirm existing controls still work. Check representative states, inspecting screenshots or existing visual tests. Expand shared-style checks to representative consumers. Distinguish static inspection, current-browser checks and target-environment checks.
 
 Without rendering the page, inspect style scope and layout risks, but state that actual visual verification was not performed. A successful build does not establish visual correctness.

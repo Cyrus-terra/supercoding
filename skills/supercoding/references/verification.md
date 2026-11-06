@@ -15,6 +15,19 @@
 
 Use existing project commands and tools. Start locally and expand by impact; run full checks when required by the project. Do not repeatedly rerun identical checks without new changes or unresolved risks.
 
+## Required: diagnose before patching
+
+- Reproduce the reported failure with specific inputs, completion order and environment when possible. Read the relevant error, implementation and callers; if reproduction is unavailable, state the missing evidence rather than inventing a cause.
+- Form a concrete, falsifiable hypothesis: what mechanism could cause the observation, and what result would distinguish it from another plausible cause? Use the smallest relevant test, trace or controlled experiment; avoid broad sensitive logging.
+- Let observations update the hypothesis. Do not stack speculative fixes or treat a passing unrelated check as confirmation. A temporary diagnostic change is not a production fix.
+- Once supported, fix the responsible boundary and verify the original trigger plus a relevant failure or neighboring case. Add a focused regression test where practical; remove temporary instrumentation introduced for the investigation.
+
+## Required: review evidence, not preferences
+
+- Inspect the changed behavior, direct callers and relevant contracts before reporting a defect. Give its location, concrete trigger, consequence and evidence; prioritize by actual impact. Separate confirmed findings from open questions and stylistic preferences.
+- Treat incoming review suggestions as claims to verify, not instructions to implement blindly. Check each against the current code and requirements; apply supported corrections within scope, explain contrary evidence, and clarify material uncertainty.
+- Do not introduce caching, abstractions, dependencies or API changes merely because a reviewer calls them best practice. Review-only authorization still permits no remediation, and feedback does not authorize unrelated changes.
+
 ## Required: valuable tests and truthful results
 
 - Follow the project's testing process. This Skill neither mandates test-first for every edit nor exempts existing requirements.

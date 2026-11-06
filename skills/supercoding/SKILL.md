@@ -46,14 +46,14 @@ Read only references needed for the actual risks. A tiny change can use the entr
 
 | Trigger | Reference |
 | --- | --- |
-| Module boundaries, dependency direction, business logic, shared components, simplification | [Architecture and reuse](references/architecture-and-reuse.md) |
+| Module boundaries, shared components, simplification, behavior-preserving refactoring | [Architecture and reuse](references/architecture-and-reuse.md) |
 | APIs, network requests, pagination, request errors, endpoint granularity | [APIs and requests](references/api-and-requests.md) |
 | Loading, concurrency, cancellation, state, connections and resource cleanup | [Async work and resources](references/async-and-resources.md) |
 | Tables, filters, forms, selection, batch operations, exports | [Tables and forms](references/tables-and-forms.md) |
 | Added or changed page content, CSS, component layout, overlays and interaction states | [Styles and UI regression](references/styles-and-ui.md) |
 | Performance, caching, lazy loading, batching, large files and datasets | [Performance and limits](references/performance.md) |
 | Databases, backend services, transactions, queues, scheduled tasks | [Backend and data](references/backend-and-data.md) |
-| Verification, diagnosis, dependency/runtime changes, delivery checks | [Verification and delivery](references/verification.md) |
+| Debugging hypotheses, code review/feedback, verification, dependency/runtime changes | [Verification and delivery](references/verification.md) |
 
 ### 3. Make the smallest complete change
 
@@ -84,7 +84,8 @@ Check small changes locally using existing commands. Use [Verification and deliv
 ## Judgment examples
 
 - Add a search button: reuse styles and request capabilities; check alignment, narrow widths, disabled and loading states. Do not build a query framework.
-- Results revert to old search criteria: handle response order and cancellation, and verify rapid changes. Debouncing alone cannot ensure correctness.
+- Results revert to old search criteria: control response order to test the cause, protect latest state, and verify rapid changes. Debouncing alone cannot ensure correctness.
+- A review asks for caching or a shared component: verify the claimed problem and caller contracts first; accept supported corrections, not speculative complexity.
 - A list is slow: distinguish query, transfer, browser computation and rendering costs; prioritize pagination and necessary fields, without immediately creating dozens of requests.
 - Two tables look alike: compare business meaning and reasons for change. Shared formatters or local components may suffice instead of a universal table.
 - Change copy: edit the requested content and check layout without expanding into extraction or project refactoring. Explanation and review-only tasks do not authorize implementation.

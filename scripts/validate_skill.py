@@ -174,7 +174,7 @@ def read_cases(case_file, root, repository, name, errors):
                         errors.append(f"{prefix}: invalid reference {ref}")
         if triggers != {True, False}:
             errors.append(f"{case_file.name}: Include both positive and negative trigger cases")
-        required = {"ui-small-change", "request-race", "api-granularity", "reuse-boundary", "bounded-script", "cache-isolation", "style-isolation", "scope-review-only", "evidence-honesty", "negative-documentation", "coding-small-config"}
+        required = {"ui-small-change", "request-race", "api-granularity", "reuse-boundary", "bounded-script", "cache-isolation", "style-isolation", "scope-review-only", "evidence-honesty", "negative-documentation", "coding-small-config", "debugging-hypothesis", "review-feedback-validation"}
         if missing := required - categories:
             errors.append(f"{case_file.name}: Missing scenario categories: {', '.join(sorted(missing))}")
         return cases

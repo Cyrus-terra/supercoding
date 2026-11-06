@@ -34,6 +34,12 @@ Repetition signals possible extraction; counts are not a mechanical threshold. S
 - Do not add factories, plugin systems, configurable layers or cross-language bridges for speculative future reuse.
 - Do not format or rewrite unrelated files to unify style.
 
+## Required: preserve behavior during refactoring
+
+- Name the observable behavior that must stay unchanged. Use existing tests and representative inputs before restructuring; add focused characterization checks only for relevant uncovered risks.
+- Compare the same cases before and after: outputs, valid zero/empty/null values, errors, ordering, serialization, and the number/order of observable side effects. Representative callers and UI interactions matter as well as the extracted helper.
+- Keep structural changes separate from requested behavior changes so each is reviewable. Do not silently fix a business rule while claiming a behavior-preserving refactor; report an unrelated defect instead of expanding scope.
+
 ## Examples
 
 Do: reuse a domain money formatter across two lists; keep separate orchestration for pages with different approval flows.

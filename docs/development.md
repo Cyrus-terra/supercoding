@@ -17,7 +17,7 @@ Keep one English `SKILL.md` and eight English references for every task language
 
 Only README and installation instructions are bilingual, with reciprocal links between `.md` and `.zh-CN.md`. Keep these pairs synchronized. Maintenance documentation, evaluation protocol, scenario data and runtime rules are maintained in English only.
 
-`evals.json` contains 20 scenarios and 72 assertions, with `reference_files` pointing to shared English rules. Maintain one scenario set rather than translated copies. Additional language-specific evaluation is optional when a concrete need arises.
+`evals.json` contains 22 scenarios and 83 assertions, with `reference_files` pointing to shared English rules. Maintain one scenario set rather than translated copies. Additional language-specific evaluation is optional when a concrete need arises.
 
 Rules follow project language/framework constraints without forcing abstractions or legacy rewrites as best practice. Loading order does not establish instruction priority.
 
