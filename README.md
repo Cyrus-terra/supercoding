@@ -262,4 +262,4 @@ The repository organization is inspired by Superpowers, while the scope remains 
 
 ## License
 
-No license is currently included. Uploading the repository to GitHub does not itself grant an open-source license or redistribution permission. The maintainer should choose the licensing terms and add the corresponding license file before public distribution.
+Licensed under the [MIT License](LICENSE). You may use, modify and distribute this project, including commercially, provided you retain the copyright and permission notices as required by the license. The software is provided without warranty.
