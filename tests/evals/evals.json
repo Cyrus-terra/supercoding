@@ -1,0 +1,215 @@
+{
+  "skill_name": "supercoding",
+  "schema_version": 1,
+  "evals": [
+    {
+      "id": 1,
+      "category": "ui-small-change",
+      "should_trigger": true,
+      "prompt": "Add a refresh button to the existing Vue orders page. Reuse project styles and leave other features unchanged.",
+      "fixture": "A minimal Vue page with an existing request function, button component, filter bar and table, backed by a runnable local data service.",
+      "files": ["src/pages/orders.vue"],
+      "reference_files": ["references/styles-and-ui.md", "references/async-and-resources.md"],
+      "expected_output": "Reuse the request and button, provide scoped waiting/failure feedback and check the addition against existing layout.",
+      "assertions": ["Reuse the existing refresh entry without a new request framework", "Prevent pointless duplicate refreshes while pending and finalize state correctly", "Actually inspect layout or state that visuals remain unverified", "Avoid unrelated refactors, dependencies or design documents"]
+    },
+    {
+      "id": 2,
+      "category": "request-race",
+      "should_trigger": true,
+      "prompt": "After rapid typing, this React search page sometimes shows results for the previous keyword. Fix it.",
+      "fixture": "A React search page with controllable completion order; old requests can succeed or fail after newer ones.",
+      "files": ["src/Search.tsx"],
+      "reference_files": ["references/async-and-resources.md", "references/api-and-requests.md"],
+      "expected_output": "Keep data and state for the latest criteria protected from older requests.",
+      "assertions": ["Only the latest request updates results after out-of-order completion", "An old request's finally does not clear a newer request's loading", "Do not claim debouncing alone fixes the race", "Cancellation does not produce an ordinary failure notification"]
+    },
+    {
+      "id": 3,
+      "category": "api-granularity",
+      "should_trigger": true,
+      "prompt": "This Java list endpoint returns every record and attachment detail, and the page is slowing down. Optimize it without creating dozens of requests.",
+      "fixture": "A minimal Java service and list caller with an unbounded query and large fields, plus multiple pages of test data.",
+      "files": ["src/OrderController.java", "src/OrderRepository.java", "web/orders.ts"],
+      "reference_files": ["references/api-and-requests.md", "references/backend-and-data.md", "references/performance.md"],
+      "expected_output": "Paginate at the data source, load fields/details on demand, preserve caller contracts and verify costs.",
+      "assertions": ["Paginate at the data source instead of slicing a full result", "Apply reasonable page-size or batch limits", "Fetch attachment details on demand rather than per row", "Do not claim a fixed improvement without measurement"]
+    },
+    {
+      "id": 4,
+      "category": "reuse-boundary",
+      "should_trigger": true,
+      "prompt": "These two business-page tables look alike. Identify worthwhile reuse and make the smallest relevant changes.",
+      "fixture": "Orders and staff table pages look similar but have different approval flows; they share money formatting or missing-value presentation.",
+      "files": ["src/orders/Table.tsx", "src/staff/Table.tsx"],
+      "reference_files": ["references/architecture-and-reuse.md", "references/tables-and-forms.md"],
+      "expected_output": "Extract stable shared rules while retaining separate business orchestration.",
+      "assertions": ["Choose extraction boundaries by semantics and reasons for change", "Do not couple different flows in a universal table", "Shared capabilities have no hidden page-private state dependencies"]
+    },
+    {
+      "id": 5,
+      "category": "bounded-script",
+      "should_trigger": true,
+      "prompt": "Make this Python CSV script handle large files. It currently exhausts memory and submits all remote requests at once.",
+      "fixture": "A standard-library CSV script reads everything and submits all tasks; a local service counts concurrency and injects timeouts.",
+      "files": ["process_csv.py"],
+      "reference_files": ["references/performance.md", "references/async-and-resources.md"],
+      "expected_output": "Stream data, bound concurrency, apply timeouts and cleanup, without a new full-result buffer.",
+      "assertions": ["Input, task queue and output do not accumulate without bounds", "Actual in-flight calls stay within the configured concurrency limit", "Failure and exit release files and client resources", "Do not add a queue service or frontend directories to a single script"]
+    },
+    {
+      "id": 6,
+      "category": "cache-isolation",
+      "should_trigger": true,
+      "prompt": "After adding query caching to this Go service, edited lists stay stale and different tenants may see the same results. Fix it.",
+      "fixture": "A minimal Go service omits tenant identity from cache keys and fails to invalidate after writes, with two tenants using identical filters.",
+      "files": ["internal/orders/service.go", "internal/orders/cache.go"],
+      "reference_files": ["references/performance.md", "references/backend-and-data.md"],
+      "expected_output": "Fix isolation, write invalidation and capacity policies.",
+      "assertions": ["Two tenants using the same filters do not share private results", "Related queries refresh after writes according to the contract", "Cache size and expiry are reasonably bounded", "Do not use indefinite caching to conceal query problems"]
+    },
+    {
+      "id": 7,
+      "category": "table-behavior",
+      "should_trigger": true,
+      "prompt": "Add batch deletion and cross-page selection to the orders table. Changing filters must not delete previously selected data accidentally.",
+      "fixture": "A table with stable IDs, server pagination, a batch endpoint and authorization, covering two pages and a final page with one row.",
+      "files": ["src/orders/Table.vue"],
+      "reference_files": ["references/tables-and-forms.md", "references/async-and-resources.md", "references/styles-and-ui.md"],
+      "expected_output": "Define selection scope and handle filter changes, partial failures and valid pagination.",
+      "assertions": ["Use stable business IDs for selection", "Clear or revalidate selection after filter changes", "Keep a valid page after deleting the final row on the last page", "Do not report batch failure as complete success", "New actions preserve existing layout"]
+    },
+    {
+      "id": 8,
+      "category": "style-isolation",
+      "should_trigger": true,
+      "prompt": "Add a form field and an error-message row without pushing the existing Save button out of a narrow window.",
+      "fixture": "An existing form with shared button styles, a fixed action area, documented supported widths and a long error message.",
+      "files": ["src/ProfileForm.tsx", "src/profile.module.css"],
+      "reference_files": ["references/styles-and-ui.md", "references/tables-and-forms.md"],
+      "expected_output": "Match existing design with scoped styles and a workable field, message and action layout.",
+      "assertions": ["Do not add unscoped global input or button overrides", "Handle long messages at the narrowest supported width", "Provide understandable labels/validation and usable focus", "Do not present a successful build as passed visual regression"]
+    },
+    {
+      "id": 9,
+      "category": "lazy-loading",
+      "should_trigger": true,
+      "prompt": "The dashboard is slow initially. Load unopened charts and details on demand without delaying critical initial content.",
+      "fixture": "A dashboard statically imports a heavy chart and preloads unopened details; critical text and a primary action appear initially.",
+      "files": ["src/Dashboard.tsx"],
+      "reference_files": ["references/performance.md", "references/styles-and-ui.md", "references/async-and-resources.md"],
+      "expected_output": "Load noncritical code and data on demand with feedback on first use.",
+      "assertions": ["Critical initial content and primary actions remain timely", "Do not fetch every unopened detail in advance", "On-demand modules handle waiting and failure", "Do not negate the change by prefetching every module"]
+    },
+    {
+      "id": 10,
+      "category": "backend-consistency",
+      "should_trigger": true,
+      "prompt": "This C# stock-decrement endpoint mishandles duplicate requests. Also inspect slow responses from database queries inside a loop.",
+      "fixture": "A minimal inventory service reproduces duplicate deductions with repeated idempotency keys/concurrent requests and has countable per-item data access.",
+      "files": ["Services/InventoryService.cs"],
+      "reference_files": ["references/backend-and-data.md", "references/api-and-requests.md"],
+      "expected_output": "Enforce deduplication and consistency at a trusted boundary, assessing and removing N+1 access.",
+      "assertions": ["Deduplication does not rely only on frontend buttons", "Concurrency or retries do not duplicate deductions", "Query changes preserve business atomicity", "Do not wait without bounds for external calls inside transactions"]
+    },
+    {
+      "id": 11,
+      "category": "scope-review-only",
+      "should_trigger": true,
+      "prompt": "Review only this Rust module's cleanup and performance risks. Do not modify it yet.",
+      "fixture": "A minimal Rust module with identifiable resource lifetimes and batch processing.",
+      "files": ["src/worker.rs"],
+      "reference_files": ["references/async-and-resources.md", "references/performance.md", "references/verification.md"],
+      "expected_output": "Report findings with locations, triggering conditions and consequences, without edits.",
+      "assertions": ["Do not edit files or run operations with business side effects", "Attach locations and concrete triggering conditions", "Distinguish static reasoning from actual measurement"]
+    },
+    {
+      "id": 12,
+      "category": "negative-translation",
+      "should_trigger": false,
+      "prompt": "Translate this sentence into French: Today's meeting has been moved to 3 p.m.",
+      "fixture": "No project required.",
+      "files": [],
+      "reference_files": [],
+      "expected_output": "Translate directly without an engineering workflow.",
+      "assertions": ["Do not load coding standards or scan code", "Do not create files/checklists or run checks"]
+    },
+    {
+      "id": 13,
+      "category": "negative-writing",
+      "should_trigger": false,
+      "prompt": "Help make this birthday greeting sound more natural.",
+      "fixture": "No project required.",
+      "files": [],
+      "reference_files": [],
+      "expected_output": "Respond to the writing request without invoking coding standards.",
+      "assertions": ["Do not start an engineering workflow", "Do not use performance or reuse checklists"]
+    },
+    {
+      "id": 14,
+      "category": "evidence-honesty",
+      "should_trigger": true,
+      "prompt": "Optimize this Node.js endpoint. This environment has neither a database nor runnable test data.",
+      "fixture": "Statically inspectable Node.js data access with an explicitly unavailable database and benchmark environment.",
+      "files": ["src/orders/service.js"],
+      "reference_files": ["references/performance.md", "references/verification.md"],
+      "expected_output": "Complete safe changes and available checks, explaining performance-verification limits.",
+      "assertions": ["Do not invent performance numbers or database results", "Report checks actually executed", "Do not install a database or operate external systems without a basis"]
+    },
+    {
+      "id": 15,
+      "category": "simplification",
+      "should_trigger": true,
+      "prompt": "Simplify repeated business conditions in this Kotlin method while preserving behavior. Leave other modules alone.",
+      "fixture": "One method repeats the same business condition and includes valid zero values, nulls and early returns, with existing behavior tests.",
+      "files": ["src/main/kotlin/OrderPolicy.kt"],
+      "reference_files": ["references/architecture-and-reuse.md", "references/verification.md"],
+      "expected_output": "Centralize repeated business rules while preserving boundaries/behavior and passing relevant checks.",
+      "assertions": ["Preserve valid zero values and existing error behavior", "Do not replace readable code with complex one-liners", "Do not add unnecessary factories or configuration layers", "No unrelated module diffs"]
+    },
+    {
+      "id": 16,
+      "category": "legacy-local-scope",
+      "should_trigger": true,
+      "prompt": "Add a filter to the orders page in this legacy project. Leave other modules unchanged.",
+      "fixture": "The orders page has an existing request layer; an unrelated legacy module has obvious duplication. The new filter affects pagination and existing layout.",
+      "files": ["src/orders/List.vue", "src/legacy/Report.vue"],
+      "reference_files": ["references/tables-and-forms.md", "references/styles-and-ui.md", "references/api-and-requests.md"],
+      "expected_output": "Inspect related existing code and implement the filter without automatic repository-wide remediation.",
+      "assertions": ["Use the supercoding entry and relevant rules before coding", "Inspect the current page and existing request capabilities first", "Keep pagination/results consistent after filter changes", "Do not modify unrelated legacy modules or require a full audit first"]
+    },
+    {
+      "id": 17,
+      "category": "context-reuse",
+      "should_trigger": true,
+      "prompt": "Continue on that page and move the refresh button to the right of the filter bar.",
+      "fixture": "The same context already contains the complete unchanged entry and style guidance, and the page request feature was just completed.",
+      "files": ["src/orders/List.vue"],
+      "reference_files": ["references/styles-and-ui.md"],
+      "expected_output": "Reuse loaded entry/style rules and make a local layout change.",
+      "assertions": ["Do not reinvoke or paste the complete Skill instructions still in context", "Do not load every reference for a small layout task", "Inspect the combined layout or state that visual verification is incomplete"]
+    },
+    {
+      "id": 18,
+      "category": "full-audit-read-only",
+      "should_trigger": true,
+      "prompt": "Review this entire legacy project against supercoding. List issues first and do not change code.",
+      "fixture": "An isolated multimodule project with requests, backend data and shared components; read-only inspection and existing checks without side effects are permitted.",
+      "files": ["src/orders/List.vue", "server/orders/service.py", "src/components/Button.vue"],
+      "reference_files": ["references/architecture-and-reuse.md", "references/api-and-requests.md", "references/verification.md"],
+      "expected_output": "Expand review within authorization and report evidence-backed findings without remediation.",
+      "assertions": ["Expand review to relevant project modules", "Report only observed issues with locations and impact", "Do not edit business files or automatically fix issues", "Do not claim unchecked areas are compliant"]
+    },
+    {
+      "id": 19,
+      "category": "coding-small-config",
+      "should_trigger": true,
+      "prompt": "Read an additional environment variable in the existing build script, following its current conventions.",
+      "fixture": "An isolated project with a simple build script, runtime version and existing check commands, without UI changes.",
+      "files": ["scripts/build.js"],
+      "reference_files": ["references/verification.md"],
+      "expected_output": "Use the entry even for a small build-script task, reading only relevant rules and running appropriate checks.",
+      "assertions": ["Use supercoding before coding", "Do not load unrelated UI/table guidance", "Do not create unnecessary abstraction layers or approval documents", "Preserve existing environment-variable and build behavior"]
+    }
+  ]
+}
