@@ -1,8 +1,8 @@
 ---
 name: supercoding
-description: Cross-language coding and review standards. Use for every task that writes or modifies code, including application code, pages, components, APIs, scripts, tests, build configuration, code examples, refactoring and performance optimization; use for code review when relevant. Load this lightweight entry, then task-relevant guidance on modularity, reuse, simplicity, requests, async work, tables, styles, data access and performance. Inspect only related legacy code by default; do not automatically remediate the repository. Not for ordinary conversation, translation or non-coding file tasks.
+description: Cross-language coding and review standards. Use for every task that writes or modifies code, including application code, pages, components, APIs, scripts, tests, build configuration, code examples, refactoring and performance optimization; use for code review when relevant. Load this lightweight entry, then task-relevant guidance on modularity, reuse, simplicity, requests, async work, tables, styles, data access and performance. Inspect only related legacy code by default; do not automatically remediate the repository. Not for pure README, documentation or report writing, translation or ordinary conversation.
 metadata:
-  version: "1.2.0"
+  version: "1.3.0"
 ---
 
 # supercoding
@@ -22,6 +22,7 @@ Keep correctness and safety as the baseline. Reduce unnecessary data, computatio
 
 ## Coding entry and context budget
 
+- Pure README, installation-guide and report writing, translation and ordinary conversation do not trigger this Skill. Existing snippets or shell commands in a document do not by themselves make prose editing a coding task. In mixed tasks, apply engineering guidance to the code being implemented or changed.
 - Before every coding task, confirm that this Skill is loaded. Otherwise invoke `supercoding` through the client's Skill mechanism, or read this file if no such mechanism exists. Small edits, tests, build configuration and code examples are included.
 - Reuse complete, unchanged instructions already present in the same context. Do not repeatedly invoke, paste or reread them. Reload in a new session, after context loss or after a Skill update; a summary containing only the name is not the rules.
 - Load only references relevant to the current functionality; add others when the task expands. Loading the entry first prepares context and does not give this Skill priority over project standards. Follow the priority above and apply compatible rules.
@@ -41,7 +42,7 @@ Identify the actual risks: business correctness, API contracts, data volume, asy
 
 ### 2. Select references as needed
 
-Read relevant files below before implementation or review. Usually start with the most relevant 1–3; reuse unchanged references still available in context. Add guidance as scope expands, without missing real risks because of a numerical limit or loading everything at once. Apply the rules after loading, rather than merely listing filenames.
+Read only references needed for the actual risks. A tiny change can use the entry alone when it provides sufficient guidance; otherwise start with the most relevant references, often 1–3. Reuse unchanged references still in context. Page functionality changes require the style guidance below, even without new CSS. Add guidance as scope expands; do not load the whole collection by default. Apply loaded rules rather than merely listing filenames.
 
 | Trigger | Reference |
 | --- | --- |
@@ -73,7 +74,7 @@ Always consider:
 
 ### 4. Verify and deliver
 
-Select necessary checks from [Verification and delivery](references/verification.md). Check small changes locally; strengthen verification for shared capabilities, contracts, complex async work and data operations.
+Check small changes locally using existing commands. Use [Verification and delivery](references/verification.md) when additional guidance is needed; strengthen verification for shared capabilities, contracts, complex async work and data operations.
 
 - Verify the requested behavior and likely failure paths, and inspect the diff for accidental changes to existing work.
 - Consider visual regression for UI changes. State when the page was not run and visuals remain unverified.
@@ -90,6 +91,6 @@ Select necessary checks from [Verification and delivery](references/verification
 
 ## Installation and maintenance boundaries
 
-This directory is a standalone standard Skill containing entries and runtime references. A plugin may expose `supercoding:supercoding`; use the actual client-provided name. Reuse the entry if a session hook has already loaded it completely.
+This directory is a standalone standard Skill containing one entry and runtime references. A plugin may expose `supercoding:supercoding`; use the actual client-provided name. Reuse the entry if a session hook has already loaded it completely.
 
 Maintenance scripts, installation guides and evaluations live outside the Skill directory. Do not read evaluation prompts during ordinary coding. When maintaining this Skill, use docs, scripts and tests from the source repository; standalone installations need not include them.

@@ -1,0 +1,17 @@
+{
+  "name": "supercoding",
+  "interface": {
+    "displayName": "supercoding"
+  },
+  "plugins": [
+    {
+      "name": "supercoding",
+      "source": {"source": "local", "path": "./"},
+      "category": "Developer Tools",
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      }
+    }
+  ]
+}

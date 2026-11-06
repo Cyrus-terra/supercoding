@@ -2,260 +2,96 @@
 
 [English](README.md) | **简体中文**
 
-**面向 AI 编码助手的跨语言工程开发规范，让每次编码都关注性能、复用、精简和页面质量。**
+**面向 AI 编码助手的开发规范：复用已有能力，保持改动精简，关注性能与页面质量。**
 
-适用于新功能开发、缺陷修复、代码重构、性能优化和代码审查，覆盖前端、后端、脚本、测试及构建配置。沿用项目技术栈，按任务加载相关规则，兼顾运行效率、开发效率与维护成本。
+适用于前端、后端、脚本、测试和构建配置。沿用项目技术栈，指导助手处理搜索结果乱序、接口数据过大、业务规则复用、loading 和页面布局等实际工程问题。
 
-`supercoding` 是 Agent Skill，也提供 Claude Code 与 CodeBuddy 的插件入口。它通过提示词指导助手实施和验证，不是自动修复整个仓库的工具，也不是代码合规检测器。
+一个轻量入口，八份按需参考。上下文已有且未变化的规则直接沿用，微小修改可以只使用入口。纯 README、文档编写、翻译和普通交流不触发。
 
-**语言说明：**你可以直接用中文或英文提出需求。助手读取同一套英文规范，并按你偏好的语言回复；也可以明确指定回复语言。README 和安装说明提供双语，其余运行时规则、维护及评测材料统一英文。
+## 按客户端安装
 
-## 功能
+每个客户端选择**一种**原生插件/扩展或独立 Skill。六个客户端使用同一套规则；通过支持的客户端使用 DeepSeek 等模型时，安装格式不变。
 
-| 能力 | 具体规范 |
-| --- | --- |
-| 模块化与解耦 | 按业务职责划分边界、明确依赖方向，避免循环依赖和职责混杂；不按行数机械拆文件 |
-| 代码复用与公共组件 | 先找现有能力，提取稳定的共同规则；区分基础组件、业务组件和页面组件，避免万能组件 |
-| 代码精简 | 减少重复判断、无效分支、重复状态和无用包装，保持可读性，不为未来假设过度设计 |
-| 接口与请求 | 复用请求基础层、按领域组织 API；合理分页、按需字段和详情加载，兼顾接口聚合与拆分 |
-| 异步交互 | 合适范围的 loading、错误与空态、提交防重、取消、响应乱序保护和资源释放 |
-| 表格与表单 | 筛选与分页联动、稳定行标识、跨页选择、批量操作、末页删除、校验及导入导出 |
-| 页面样式 | 每次新增页面功能都检查原布局、样式作用域、设计变量、长文本、支持宽度、浮层与交互状态 |
-| 性能优化 | 先定位瓶颈，再评估缓存、懒加载、虚拟滚动、批处理、流式处理和受控并发，使用证据说明收益 |
-| 后端与数据 | 避免 N+1 查询，检查数据规模、事务、幂等、权限隔离、队列背压及后台任务 |
-| 验证与交付 | 根据影响范围选择测试、构建和视觉检查，区分实际结果、静态判断与未验证内容 |
+| 客户端 | 可用安装方式 | 操作说明 |
+| --- | --- | --- |
+| Claude Code | marketplace 插件、本地会话插件、独立 Skill | [Claude Code](docs/clients/claude-code.zh-CN.md) |
+| CodeBuddy | marketplace 插件、本地会话插件、独立 Skill | [CodeBuddy](docs/clients/codebuddy.zh-CN.md) |
+| Codex | 仓库 marketplace 插件、独立 Skill | [Codex](docs/clients/codex.zh-CN.md) |
+| Gemini CLI | 原生扩展、独立 Skill | [Gemini CLI](docs/clients/gemini-cli.zh-CN.md) |
+| Hermes Agent | 原生插件、独立 Skill | [Hermes](docs/clients/hermes.zh-CN.md) |
+| OpenClaw | 原生插件、独立 Skill | [OpenClaw](docs/clients/openclaw.zh-CN.md) |
 
-这些规则不绑定特定语言或框架。涉及具体技术时，助手仍需遵守项目版本、依赖、设计系统和部署环境；“跨语言”不代表每种技术栈都已完成独立适配与验证。
-
-## 工作方式
-
-```text
-收到编码任务
-  → 加载轻量入口（当前上下文已有且未变化时直接沿用）
-  → 阅读项目约束和本次相关代码，寻找复用点
-  → 按功能加载必要参考
-  → 完成最小且完整的变更
-  → 执行相关验证并说明结果
-```
-
-例如：
-
-- 新增筛选项：加载表格、请求及样式规范。
-- 修复搜索结果乱序：加载异步和请求规范。
-- 优化大文件脚本：加载性能和资源管理规范。
-- 调整后台事务：加载后端数据及相关验证规范。
-
-通常先加载最相关的 1–3 份参考，任务扩大后再补充；不默认读取全套，也不重复读取仍保留在上下文中的内容。
-
-## 安装
-
-选择一种方式即可。**独立 Skill 适合持久安装，完整插件适合使用会话 hook。**避免同时安装两种方式导致重复入口。
-
-### 1. 获取源码
-
-从本 GitHub 仓库下载 ZIP 并解压，或克隆到本地：
+本地安装、测试或管理独立副本时，先获取源码：
 
 ```sh
-# 将占位符替换为本仓库实际的 Git 克隆地址。
-git clone "<本仓库的 Git 克隆地址>" supercoding
+git clone https://github.com/Cyrus-terra/supercoding.git
 cd supercoding
 ```
 
-以下安装命令在解压或克隆后的 `supercoding` 仓库根目录执行。命令示例适用于 macOS / Linux 的常见 shell。
-
-### 2. 方式 A：独立 Skill 持久安装
-
-只安装 `skills/supercoding/`，不需要 Python，不包含插件会话 hook。选择你使用的客户端执行。
-
-**Claude Code：**
+例如，使用 Python 3.9+ 为 Codex 安装受管理的独立副本：
 
 ```sh
-if [ -e "$HOME/.claude/skills/supercoding" ] || [ -L "$HOME/.claude/skills/supercoding" ]; then
-  printf '%s\n' '目标已存在，请先比较现有安装；本次未覆盖。'
-else
-  mkdir -p "$HOME/.claude/skills" &&
-  cp -R ./skills/supercoding "$HOME/.claude/skills/supercoding"
-fi
+python3 -B scripts/manage.py install --client codex --source .
 ```
 
-**CodeBuddy：**
+没有 Python 时，手动将 `skills/supercoding/` 复制到客户端技能目录，保留已有安装；默认路径、Windows、项目级范围和默认启用见[共用安装指南](docs/installation.zh-CN.md)。原生插件由宿主管理。新增打包必须推送后远程安装命令才能获取；本仓库不宣称已经进入官方市场、npm 或 ClawHub。
 
-```sh
-if [ -e "$HOME/.codebuddy/skills/supercoding" ] || [ -L "$HOME/.codebuddy/skills/supercoding" ]; then
-  printf '%s\n' '目标已存在，请先比较现有安装；本次未覆盖。'
-else
-  mkdir -p "$HOME/.codebuddy/skills" &&
-  cp -R ./skills/supercoding "$HOME/.codebuddy/skills/supercoding"
-fi
-```
+## 首次使用
 
-Windows 用户可手动复制 `skills/supercoding` 文件夹到所选客户端的用户级技能目录。最终应是 `skills/supercoding/SKILL.md`，不要多嵌套一层同名目录。
-
-重新开启客户端会话，确认技能列表中出现 `supercoding`。需要只在某个项目使用时，可以改为复制到项目的 `.claude/skills/` 或 `.codebuddy/skills/`，不要同时保留重复的项目级与用户级安装。
-
-**让所有编码任务默认使用：**
-
-单独安装 Skill 后，客户端可以根据任务发现它；要明确要求所有编码任务都使用，请把下面的规则追加到对应指令文件，保留原有内容：
-
-| 生效范围 | Claude Code | CodeBuddy |
-| --- | --- | --- |
-| 用户级，跨项目 | `~/.claude/CLAUDE.md` | `~/.codebuddy/CODEBUDDY.md` |
-| 仅当前项目 | 项目根目录 `CLAUDE.md` | 项目根目录 `CODEBUDDY.md` |
-
-```markdown
-## supercoding
-
-所有编写或修改代码的任务开始前必须使用 supercoding，包括业务代码、页面、组件、接口、脚本、测试、构建配置、代码示例、修复、重构和性能优化。
-当前上下文已完整加载且未变化时直接沿用；否则调用客户端实际提供的 Skill 名称，或读取已安装的 supercoding/SKILL.md。
-只加载当前功能对应的参考规则，页面变更必须检查样式。
-遵守客户端系统、安全和权限约束，用户明确要求及项目明确规范优先于本 Skill；旧代码习惯不等于明确规范。
-默认只检查本次相关旧代码，不自动全仓审计或整改。普通聊天、翻译和非编码文件任务不触发。
-```
-
-这是 Agent 指令约束，不是逐次写入拦截。安装后不会修改你的全局文件，以上规则需自行追加。
-
-### 3. 方式 B：完整插件会话加载
-
-环境需要已安装对应客户端，以及 **Python 3.9+**，且可通过 `python3` 命令运行。先检查：
-
-```sh
-python3 --version
-```
-
-在仓库根目录通过以下命令之一启动客户端：
-
-```sh
-# Claude Code
-claude --plugin-dir "$PWD"
-
-# CodeBuddy
-codebuddy --plugin-dir "$PWD"
-```
-
-如果需要直接在业务项目中工作，在业务项目目录执行，并传入本仓库的绝对路径：
-
-```sh
-claude --plugin-dir "/absolute/path/to/supercoding"
-# 或
-codebuddy --plugin-dir "/absolute/path/to/supercoding"
-```
-
-请将示例路径替换为实际路径，并按客户端提示确认信任。`--plugin-dir` 是**本次会话加载**，不是永久安装命令；以后启动时仍需携带参数。本仓库目前未提供 marketplace 清单，不提供未经配置的市场安装命令。
-
-插件的 `SessionStart` hook 在启动、恢复、清空或上下文压缩时提供短提醒和入口路径；编码任务再按需加载规则。它不扫描业务项目、不写入业务文件，也不自动修改全局指令。
-
-插件中的名称可能显示为 `supercoding:supercoding`，以客户端实际可用名称为准。独立 Skill 通常为 `supercoding`。其他客户端可参考标准 Skill 目录自行适配；本仓库未实现它们的插件集成。
-
-更多安装、更新和排查说明见 [安装文档](docs/installation.zh-CN.md)。
-
-## 怎么使用
-
-配置默认编码规则或加载完整插件后，直接提出开发任务即可，也可以明确点名使用。
-
-**新增功能：**
+新建客户端会话，确认 `supercoding` 或 `supercoding:supercoding` 可用，然后尝试：
 
 ```text
 使用 supercoding 给订单页增加状态筛选。
-复用现有请求层和组件，处理分页、loading、失败状态，并检查新增内容与原页面的布局。
+复用现有请求层和组件，处理分页、loading、失败状态，
+并检查新增控件与原页面布局的关系。
 ```
 
-**性能优化：**
+发现 Skill 不等于每次编码都使用。需要默认启用时，将[编码指令](docs/installation.zh-CN.md#所有编码任务默认使用)加入客户端实际加载的上下文文件。中英文任务共用英文规则，回复跟随你的语言偏好。
 
-```text
-使用 supercoding 检查这个列表的慢响应。
-先区分查询、传输和渲染成本，再实施有依据的优化；没有测量结果时不要给出提速百分比。
+## 更新，不静默覆盖
+
+原生插件/扩展通过客户端更新，自动升级取决于宿主配置。会话 Hook 不联网检查或安装更新。
+
+独立副本支持只读检查和预览、验证后完整备份更新、保护自定义内容以及回退：
+
+```sh
+python3 -B scripts/manage.py check --client codex
+python3 -B scripts/manage.py update --client codex --dry-run
+python3 -B scripts/manage.py update --client codex
+python3 -B scripts/manage.py rollback --client codex
 ```
 
-**复用与精简：**
+上述联网命令需要对应的稳定 GitHub Release。正式发布前或离线使用时，在检查/更新命令后加 `--source .`，从可信本地源码读取。手动或定制安装在审阅后需要显式 `update --replace`；工具拒绝软链接。见[更新与恢复说明](docs/installation.zh-CN.md#版本检查更新和回退)。
 
-```text
-使用 supercoding 精简这段重复业务判断，保持原行为，只调整相关模块。
-```
+## 具体管什么
 
-**审查旧项目：**
-
-```text
-按 supercoding 全面审查这个项目，列出问题位置、触发条件和影响，先不要修改代码。
-```
-
-支持斜杠调用的客户端也可使用 `/supercoding`；插件形式可能为 `/supercoding:supercoding`。以客户端菜单为准，不将某一种调用形式当成通用要求。
-
-## 旧项目和规范优先级
-
-| 情况 | 默认行为 |
+| 方向 | 实际规范 |
 | --- | --- |
-| 打开或启动旧项目 | 不自动全仓审计，不主动改造旧代码 |
-| 在旧项目新增功能 | 先看相关实现和复用点，新增与修改部分应用相关规范 |
-| 本次直接相关的旧问题 | 在授权任务范围内处理，保持业务行为与契约 |
-| 无关旧代码不符合规范 | 不自动整改；发现范围外严重问题时说明影响 |
-| 明确要求全面审查 | 扩大审查范围并报告；仅授权审查不等于授权整改 |
-| 项目规范与 Skill 不同 | 在客户端约束内遵守用户明确要求和项目明确规范，再补充不冲突的通用规则 |
+| 复用与精简 | 先找现有能力，提取稳定共同规则，保持职责边界，避免万能组件和假设性抽象。 |
+| 接口与数据 | 复用请求层，在数据源分页，按需取字段，关注 N+1、事务、幂等和权限。 |
+| 异步与交互 | 合适范围的 loading 和错误反馈，防响应乱序和重复提交，保持筛选、分页及选择一致。 |
+| 页面质量 | 每次页面功能变更都检查布局、样式作用域、设计变量、长文本、支持宽度、焦点和交互状态。 |
+| 性能与验证 | 限制数据与并发规模，按实际需要选择流式处理、缓存或懒加载，用相关检查和测量支持结论。 |
 
-项目的语言、目录、命名、组件库、请求客户端和兼容目标继续沿用。旧代码中的缺陷不因“保持一致”而成为应继续复制的规范。
+[运行入口（英文）](skills/supercoding/SKILL.md)直接链接八份参考。助手先看项目约束与相关代码，再读必要规则，完成最小完整改动并验证。本 Skill 不额外强制 TDD、多代理、worktree 或审批流程。
 
-## 安装后如何确认生效
+## 旧项目怎么处理
 
-1. 新会话确认 Skill 可发现，插件模式没有 Python 或 hook 错误。
-2. 提交一个小编码任务，观察编码前是否加载入口、是否只读取相关参考。
-3. 同一会话继续同类修改，确认不会重复加载整套规范。
-4. 用普通翻译请求确认不会触发工程流程。
+在客户端系统、安全和权限约束内，用户明确要求与项目明确规范优先于通用 Skill。沿用现有技术栈、请求层和设计系统；旧代码缺陷不会因保持一致而成为规范。
 
-若没有生效，先检查安装层级、客户端是否已重新启动、Skill 是否被禁用，以及是否存在两个版本。插件模式还需检查 `python3` 与 hook 执行状态；详细排查见 [安装文档](docs/installation.zh-CN.md)。
+打开项目不会自动审计。编码时只检查相关旧代码，新增与修改部分应用规范。全面审查需要明确提出，仅授权审查不等于授权修复。
 
-## 仓库结构
-
-```text
-supercoding/
-├── .claude-plugin/plugin.json
-├── .codebuddy-plugin/plugin.json
-├── skills/
-│   └── supercoding/
-│       ├── SKILL.md                # 统一英文入口
-│       └── references/             # 8 份按需英文规范
-├── hooks/                         # 插件会话提醒
-├── scripts/                       # 只读维护检查
-├── tests/
-│   ├── test_repository.py
-│   └── evals/                     # 评测数据，不装入运行时 Skill
-├── docs/                          # 安装与维护说明
-├── README.md                      # 默认英文
-└── README.zh-CN.md                 # 简体中文
-```
-
-**独立安装只复制 [skills/supercoding](skills/supercoding)；完整插件加载仓库根目录。**运行时入口不依赖外层文档、测试或脚本，避免开发材料进入正常编码上下文。
-
-## 本地验证
-
-在仓库根目录运行，要求 Python 3.9+，不需要第三方 Python 依赖：
+## 验证与维护
 
 ```sh
 python3 -B scripts/validate_skill.py
 python3 -B -m unittest discover -s tests -p 'test_*.py' -v
 ```
 
-- 结构检查：元数据、相对链接、版本一致性、运行时隔离和评测数据格式。
-- 自动化测试：有效及损坏输入、插件 hook 输出、中文与空格路径、独立 Skill 完整性等。
-- 行为评测：已有 [19 个场景、69 条断言（英文）](tests/evals/evals.json)，执行方法见 [评测协议（英文）](tests/evals/protocol.md)。场景文件的存在不代表已完成真实模型评测。
+确定性检查覆盖打包、本地链接、共享规则完整性、适配器和独立更新/恢复行为，不能证明模型遵循率或性能提升。此前观察到 Claude 插件发现和 Hook 执行，但 API 连接失败阻止了修复；CodeBuddy 案例被无头权限阻止。本机 Codex 可执行文件不完整、没有 Gemini CLI，二者真实集成尚未验证。Windows Hook 启动尚未验证。
 
-## 支持状态与限制
-
-当前版本 **1.2.0**。已通过本地结构、YAML 和 28 项自动化测试，Claude Code 与 CodeBuddy 的清单和 hook 输出已按格式核对。**尚未完成真实客户端插件加载和模型行为评测**，不能据此承诺自动触发成功率、代码质量或性能提升比例。
-
-独立 Skill 本身无语言运行时依赖；插件 hook 和维护工具需要 Python。Windows hook 启动未验证；本版本未提供专用 Windows 启动器。
-
-运行时 [SKILL.md（英文）](skills/supercoding/SKILL.md) 和 8 份参考规范统一使用英文，所有语言的任务共用同一套规则；助手按用户偏好的语言回复，中文需求不需要另一套中文规则。仅 README 和安装说明保留中英文切换。维护文档、评测协议及单套评测场景统一英文，保留 19 个案例、69 条断言。
-
-`supercoding` 不替代 lint、类型检查、测试、性能测量和人工审查，也不自动安装业务依赖、推送代码、部署或发布。未设置强制 TDD、多代理、工作树或需求审批流程；已有项目流程仍然有效。
-
-本仓库借鉴 Superpowers 的目录分层，定位为工程开发规范，未复制其完整开发流程。维护约定见 [开发说明（英文）](docs/development.md)。
-
-## 更新与移除
-
-- 下载或拉取新源码后，独立安装需比较并同步运行时目录；复制安装不会随源码更新自动变化。
-- 插件模式在更新源码后重新开启带 `--plugin-dir` 的会话。
-- 独立安装移除时，只移除确认属于本 Skill 的目录，以及自行追加的 `supercoding` 指令块，保留其他配置；注意目录可能是共享软链接。
-- 会话级插件不再传入 `--plugin-dir` 即不再加载；手动添加的全局指令仍需单独处理。
+两个[可运行案例及实际记录（英文）](tests/evals/protocol.md)覆盖搜索乱序和受控 CSV 处理；发布与验证细节见[维护指南（英文）](docs/development.md)。README 和安装说明双语，运行规则、维护及评测材料保持英文。
 
 ## 授权
 
-本项目采用 [MIT 协议（英文）](LICENSE)。允许使用、修改和分发，包括商业用途，但须按协议要求保留版权声明和许可声明。本软件不提供任何担保，具体条款以 LICENSE 为准。
+采用 [MIT 协议（英文）](LICENSE)。允许商业使用、修改与分发，须保留版权与许可声明，不提供担保。

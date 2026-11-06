@@ -1,6 +1,7 @@
 {
   "name": "supercoding",
-  "version": "1.2.0",
+  "version": "1.3.0",
+  "author": {"name": "supercoding contributors"},
   "description": "Engineering standards for performance, reuse, simplicity, requests, async work and UI quality, loaded on demand.",
   "keywords": ["coding-standards", "performance", "reuse", "modularity", "ui", "progressive-disclosure"]
 }

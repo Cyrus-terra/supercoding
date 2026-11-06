@@ -20,6 +20,7 @@ REFERENCES = {
     "backend-and-data.md",
     "verification.md",
 }
+CLIENTS = ("claude-code", "codebuddy", "codex", "gemini-cli", "hermes", "openclaw")
 
 
 def inside(root, target):
@@ -40,6 +41,11 @@ def read_entry(entry, root, errors):
     except (OSError, UnicodeError) as exc:
         errors.append(f"Cannot read {entry.name}: {exc}")
         return "", {}, {}
+    return parse_entry(text, entry, root, errors)
+
+
+def parse_entry(text, entry, root, errors):
+    """Validate entry text without requiring a filesystem write."""
     lines = text.splitlines()
     if len(lines) >= 500:
         errors.append(f"Keep {entry.name} below 500 lines (authoring budget)")
@@ -168,7 +174,7 @@ def read_cases(case_file, root, repository, name, errors):
                         errors.append(f"{prefix}: invalid reference {ref}")
         if triggers != {True, False}:
             errors.append(f"{case_file.name}: Include both positive and negative trigger cases")
-        required = {"ui-small-change", "request-race", "api-granularity", "reuse-boundary", "bounded-script", "cache-isolation", "style-isolation", "scope-review-only", "evidence-honesty"}
+        required = {"ui-small-change", "request-race", "api-granularity", "reuse-boundary", "bounded-script", "cache-isolation", "style-isolation", "scope-review-only", "evidence-honesty", "negative-documentation", "coding-small-config"}
         if missing := required - categories:
             errors.append(f"{case_file.name}: Missing scenario categories: {', '.join(sorted(missing))}")
         return cases
@@ -209,7 +215,7 @@ def validate(root):
         return errors, stats
     name = fields.get("name", "")
     versions = set()
-    for manifest_name in (".claude-plugin/plugin.json", ".codebuddy-plugin/plugin.json"):
+    for manifest_name in (".claude-plugin/plugin.json", ".codebuddy-plugin/plugin.json", ".codex-plugin/plugin.json", "gemini-extension.json", "package.json", "openclaw.plugin.json"):
         try:
             manifest = json.loads((repository / manifest_name).read_text(encoding="utf-8"))
             if not isinstance(manifest, dict) or manifest.get("name") != name:
@@ -220,13 +226,45 @@ def validate(root):
             versions.add(version)
         except (OSError, UnicodeError, ValueError) as exc:
             errors.append(f"Invalid {manifest_name}: {exc}")
+    try:
+        hermes = (repository / ".hermes-plugin/plugin.yaml").read_text(encoding="utf-8")
+        match = re.search(r"^version: (\d+\.\d+\.\d+)$", hermes, re.MULTILINE)
+        if not match or "name: supercoding\n" not in hermes:
+            raise ValueError("Hermes name/version invalid")
+        versions.add(match[1])
+        if not (repository / ".hermes-plugin/__init__.py").is_file():
+            raise ValueError("Hermes registration missing")
+    except (OSError, UnicodeError, ValueError) as exc:
+        errors.append(f"Invalid Hermes plugin: {exc}")
     if versions != {metadata.get("version")}:
         errors.append("Plugin and Skill versions must match")
+    for manifest_name in (".claude-plugin/marketplace.json", ".codebuddy-plugin/marketplace.json", ".agents/plugins/marketplace.json"):
+        try:
+            marketplace = json.loads((repository / manifest_name).read_text(encoding="utf-8"))
+            plugins = marketplace["plugins"]
+            expected_source = {"source": "local", "path": "./"} if manifest_name.startswith(".agents") else "./"
+            if marketplace.get("name") != name or len(plugins) != 1 or plugins[0].get("name") != name or plugins[0].get("source") != expected_source:
+                raise ValueError("marketplace source/name invalid")
+            if "version" in plugins[0] and plugins[0]["version"] != metadata.get("version"):
+                raise ValueError("marketplace and Skill versions must match")
+        except (OSError, UnicodeError, ValueError, KeyError, TypeError) as exc:
+            errors.append(f"Invalid {manifest_name}: {exc}")
+    try:
+        codex = json.loads((repository / ".codex-plugin/plugin.json").read_text(encoding="utf-8"))
+        openclaw = json.loads((repository / "openclaw.plugin.json").read_text(encoding="utf-8"))
+        package = json.loads((repository / "package.json").read_text(encoding="utf-8"))
+        if codex.get("skills") != "./skills/" or codex.get("hooks") != {}:
+            raise ValueError("Codex skills/hook boundary invalid")
+        if openclaw.get("id") != name or openclaw.get("skills") != ["./skills"] or openclaw.get("configSchema", {}).get("type") != "object":
+            raise ValueError("OpenClaw manifest invalid")
+        if package.get("openclaw", {}).get("extensions") != ["./index.js"] or not (repository / "index.js").is_file():
+            raise ValueError("OpenClaw runtime entry invalid")
+    except (OSError, UnicodeError, ValueError, AttributeError) as exc:
+        errors.append(f"Invalid client capabilities: {exc}")
     try:
         hook = json.loads((repository / "hooks/hooks.json").read_text(encoding="utf-8"))
         expected_hook = {"hooks": {"SessionStart": [{
-            "matcher": "startup|resume|clear|compact",
-            "hooks": [{"type": "command", "command": 'python3 "${CLAUDE_PLUGIN_ROOT}/hooks/session-start.py"', "timeout": 10}],
+            "hooks": [{"type": "command", "command": 'python3 "${CLAUDE_PLUGIN_ROOT:-${extensionPath}}/hooks/session-start.py"'}],
         }]}}
         if hook != expected_hook or not (repository / "hooks/session-start.py").is_file():
             errors.append("SessionStart hook configuration or script is invalid")
@@ -241,6 +279,16 @@ def validate(root):
         check_pair(document, counterpart, documentation, errors)
     for document in (repository / "docs/development.md", repository / "tests/evals/protocol.md"):
         check_links(document, repository, errors)
+    client_documents = []
+    for client in CLIENTS:
+        document = repository / "docs/clients" / f"{client}.md"
+        counterpart = translated(document)
+        for path in (document, counterpart):
+            client_documents.append(path)
+            documentation[path] = check_links(path, repository, errors)
+        check_pair(document, counterpart, documentation, errors)
+    if any(not path.is_file() for path in client_documents):
+        errors.append("Every client must have English and Chinese installation guides")
     cases = read_cases(repository / "tests/evals/evals.json", root, repository, name, errors)
     stats["eval_cases"] = len(cases)
     return errors, stats

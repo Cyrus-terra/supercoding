@@ -1,0 +1,5 @@
+name: supercoding
+version: 1.3.0
+description: Cross-language coding standards loaded on demand for Hermes Agent.
+provides_hooks:
+  - pre_llm_call

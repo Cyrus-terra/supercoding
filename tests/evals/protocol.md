@@ -16,7 +16,7 @@ Passing the first two levels is not passed behavior evaluation. Skill maintenanc
 - `files` identifies fixture paths the evaluator must prepare, not bundled files or paths available on the current machine.
 - `reference_files` identifies supporting resources relative to the Skill root, not a rigid exact read set. Reasonable equivalent routing is acceptable.
 - `assertions` score observable behavior, code results and honest reporting, not similarity of wording.
-- The scenario set contains 19 cases and 69 assertions. All cases reference the same English rules; do not count translated variants as independent coverage.
+- The scenario set contains 20 cases and 72 assertions. All cases reference the same English rules; do not count translated variants as independent coverage.
 
 ## Behavior evaluation procedure
 
@@ -29,6 +29,42 @@ Passing the first two levels is not passed behavior evaluation. Skill maintenanc
 7. If a language-specific behavior needs evaluation, run a targeted variant in a fresh context and record its language. Confirm responses follow the user's preferred language without translated rule loading; additional languages are not mandatory for every case.
 
 Store results in a test workspace outside the Skill and application repository. Report only actual execution; mark unrun checks as not evaluated.
+
+## Runnable examples
+
+Two intentionally defective fixtures are bundled under `examples/`:
+
+- `search-race/`: a framework-independent JavaScript search controller, with four checks controlling response completion order, stale errors and loading ownership. It has no DOM; it does not evaluate React integration, visual layout or cancellation support.
+- `streaming/`: a Python CSV transformer, with checks for a bounded input-to-output window, ordered output, worker limits, timeout forwarding, failure propagation and closed files. The transform callback owns enforcing its downstream I/O timeout. These checks do not measure throughput or prove a constant-memory bound for arbitrary row sizes.
+
+From the repository root:
+
+```sh
+# No model requests: confirm that the original defects reproduce.
+python3 -B scripts/run_examples.py
+
+# Opt in to real model requests using your existing client/account.
+python3 -B scripts/run_examples.py --client claude
+# Or:
+python3 -B scripts/run_examples.py --client codebuddy
+```
+
+Requires Python 3.9+ and Node.js 18+. Client mode additionally requires the chosen authenticated client and may consume account quota or incur charges. Each case runs in a fresh temporary directory with the repository plugin, project-only settings, no MCP servers, and only Read/Edit/Skill/Glob/Grep tools allowed. No application repository or installed Skill is modified. The evaluator runs checks externally and saves JSON output and patches outside the repository. Claude mode requests a per-case $1 budget ceiling; CodeBuddy mode caps each case at 16 turns without a monetary ceiling. Both have a 180-second process timeout, and the runner stops after a client error. These controls are not a total-run cost guarantee.
+
+The fixtures should fail before implementation. A successful baseline-only runner exit means the defects reproduced, not that the implementations passed. Client runs must change the implementation, preserve checks and pass the independent checks. Inspect the saved tool trace for Skill discovery, entry/reference use and unrelated changes; passing code checks alone does not establish these. The client is explicitly asked to use the Skill, so these examples do not measure automatic triggering or establish a with/without-Skill comparison. Retain sanitized results only; raw client logs may contain local paths or account metadata.
+
+## Observed local results (2026-11-06)
+
+| Check | Observed result | Limit |
+| --- | --- | --- |
+| Repository validation | Passed: 96 entry lines, eight references, 20 scenarios / 72 assertions; 28 deterministic tests passed. | Package/script coverage, not model compliance. |
+| Documented installation | Ten shell blocks parsed by sh/bash/zsh; 60 isolated install cases preserved existing directories, files and valid/dangling symlinks. | No network clone or interactive trust flow tested. |
+| Search baseline | Three race checks failed; current failure/recovery passed. | Intentional defect reproduced, not a successful fix. |
+| CSV baseline | Output-window check failed; failure propagation/file closure passed. | Intentional buffering defect reproduced. |
+| Claude Code plugin | Discovered `supercoding:supercoding`; SessionStart hook exited 0. Both model calls returned `API Error: Unable to connect to API (ECONNREFUSED)`. | No implementation edits; model behavior not evaluated. |
+| CodeBuddy client attempt | Model tool requests encountered non-interactive permission denial; runner timed out after 180 seconds and stopped. | No implementation edits; no permission-bypass retry. Plugin lifecycle not scored. |
+
+Raw JSON/tool traces and empty implementation patches were retained in temporary evaluation workspaces outside the repository. They are local diagnostic evidence, not published artifacts or durable benchmark data. CodeBuddy's restricted headless invocation did not authorize tools in the tested configuration; the runner does not bypass permissions. A future authorized client run is still required to complete the two examples. No automatic-trigger rate, with/without-Skill improvement, visual regression result or speedup was measured.
 
 ## Acceptance priorities
 

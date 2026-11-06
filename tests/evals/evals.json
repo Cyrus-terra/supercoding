@@ -207,9 +207,20 @@
       "prompt": "Read an additional environment variable in the existing build script, following its current conventions.",
       "fixture": "An isolated project with a simple build script, runtime version and existing check commands, without UI changes.",
       "files": ["scripts/build.js"],
-      "reference_files": ["references/verification.md"],
-      "expected_output": "Use the entry even for a small build-script task, reading only relevant rules and running appropriate checks.",
+      "reference_files": [],
+      "expected_output": "Use the entry even for a small build-script task; the entry alone may suffice. Run appropriate existing checks without unrelated reference reads.",
       "assertions": ["Use supercoding before coding", "Do not load unrelated UI/table guidance", "Do not create unnecessary abstraction layers or approval documents", "Preserve existing environment-variable and build behavior"]
+    },
+    {
+      "id": 20,
+      "category": "negative-documentation",
+      "should_trigger": false,
+      "prompt": "Shorten the README introduction and improve the installation guide's prose. Preserve all existing commands and code snippets.",
+      "fixture": "A documentation-only repository change with existing README and installation-guide shell snippets; no executable changes requested.",
+      "files": ["README.md", "docs/installation.md"],
+      "reference_files": [],
+      "expected_output": "Edit the requested prose directly without loading coding standards.",
+      "assertions": ["Do not invoke supercoding or read engineering references for prose-only editing", "Existing code fences do not by themselves trigger the Skill", "Preserve executable snippets and avoid code audits or unrelated changes"]
     }
   ]
 }

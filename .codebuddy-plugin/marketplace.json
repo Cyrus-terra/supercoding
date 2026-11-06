@@ -1,0 +1,14 @@
+{
+  "name": "supercoding",
+  "owner": {
+    "name": "supercoding contributors"
+  },
+  "plugins": [
+    {
+      "name": "supercoding",
+      "version": "1.3.0",
+      "description": "Lightweight coding standards for AI assistants.",
+      "source": "./"
+    }
+  ]
+}

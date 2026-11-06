@@ -4,77 +4,146 @@
 
 ## 选择一种安装方式
 
-完整插件适合希望安装后通过 SessionStart 自动获得编码提醒的客户端；独立 Skill 适合只使用标准 Skill 目录的客户端。避免同时安装两种方式造成两个同名入口和重复提醒。
+需要客户端管理安装和升级时，使用原生插件或扩展；只需要可移植规则时，使用不带 Hook 和运行依赖的独立 Skill。每个客户端尽量只发现一份安装；共享的 `.agents/skills` 可能被多个客户端同时发现。
 
-仓库含 Claude Code 与 CodeBuddy 插件清单，不声明 Cursor、Codex 或其他客户端已适配。Python hook 的 JSON 结构及配置已在本机验证，真实插件发现、信任确认和生命周期行为仍需在各客户端验证。
+克隆 `https://github.com/Cyrus-terra/supercoding.git` 或解压 ZIP。下文命令从仓库根目录运行。新增打包在本地源码中可用，推送后远程用户才能获得；不代表已经进入官方市场、npm 或 ClawHub。
 
-## 本地插件开发加载
+## 客户端兼容性
 
-在项目目录运行以下任一客户端。将 `<repo-root>` 替换为完整仓库绝对路径，保留引号：
+官方格式核对日期为 **2026-11-06**。各客户端的安装、调用、更新和排错分别说明：
 
-```sh
-codebuddy --plugin-dir "<repo-root>"
-claude --plugin-dir "<repo-root>"
-```
+| 客户端 | 仓库中的原生封装 | 安装专页 |
+| --- | --- | --- |
+| Claude Code | `.claude-plugin/` 和 marketplace | [Claude Code](clients/claude-code.zh-CN.md) |
+| CodeBuddy | `.codebuddy-plugin/` 和 marketplace | [CodeBuddy](clients/codebuddy.zh-CN.md) |
+| Codex | `.codex-plugin/` 和 `.agents/plugins/marketplace.json` | [Codex](clients/codex.zh-CN.md) |
+| Gemini CLI | `gemini-extension.json` | [Gemini CLI](clients/gemini-cli.zh-CN.md) |
+| Hermes Agent | `.hermes-plugin/` 清单和注册模块 | [Hermes](clients/hermes.zh-CN.md) |
+| OpenClaw | `openclaw.plugin.json`、`package.json`、`index.js` | [OpenClaw](clients/openclaw.zh-CN.md) |
 
-这是会话级本地加载，不是永久安装。按客户端提示确认插件信任；不要跳过客户端安全确认。插件更新后重新开启测试会话。
-
-插件从默认 `skills/` 和 `hooks/hooks.json` 发现能力。hook 命令通过 `${CLAUDE_PLUGIN_ROOT}` 定位；CodeBuddy 内置文档声明兼容该变量别名。hook 只输出少量提醒与实际入口路径，不向每轮消息注入全套规范，不扫描项目、不写全局文件。
-
-要求环境中有 Python 3.9+，且 `python3` 命令可用。Windows 上没有此命令时可以使用独立 Skill 模式；本版本没有提供或验证 Windows 启动器，不宣称所有平台即装即用。
+六种封装使用同一份[英文运行规则](../skills/supercoding/SKILL.md)。通过客户端使用 DeepSeek 等模型时，安装格式仍由客户端决定。打包或适配器检查不等于模型遵循验证，见[实际评测与边界（英文）](../tests/evals/protocol.md)。本机 Codex 可执行文件不完整、没有 Gemini CLI，这两个客户端的真实集成尚未验证。
 
 ## 独立 Skill 安装
 
-从仓库复制 `skills/supercoding/` 整个目录到客户端用户级或项目级技能目录，目录名保留 `supercoding`。例如：
+将完整 `skills/supercoding/`（包括八份参考）复制到客户端的技能目录，保留已有目录和软链接。Windows 手动复制不需要 Python。最终结构应为 `skills/supercoding/SKILL.md`，不要多嵌套一个仓库目录。
 
-- CodeBuddy 用户级：`~/.codebuddy/skills/supercoding/`
-- Claude Code 用户级：`~/.claude/skills/supercoding/`
+| 客户端参数 | 默认用户级目标 |
+| --- | --- |
+| `claude` | `~/.claude/skills/supercoding` |
+| `codebuddy` | `~/.codebuddy/skills/supercoding` |
+| `codex` | `~/.agents/skills/supercoding` |
+| `gemini` | `~/.gemini/skills/supercoding` |
+| `hermes` | `~/.hermes/skills/supercoding` |
+| `openclaw` | `~/.openclaw/skills/supercoding` |
 
-这些是目标形态，不是覆盖指令。已有同名目录、软链接或自定义规则时先检查、比较并备份；不要直接覆盖已有安装。仅复制运行时目录，不复制 tests、scripts 或 docs 到 Skill 内部。
+使用 Python 3.9+ 时，管理工具提供受保护的安装，并将文件哈希记录在运行目录之外。选择**一个**客户端：
 
-独立安装不携带仓库会话 hook。将下面的短规则加入所选客户端的全局指令，或仅加入需要启用的项目指令；现有指令保留：
+```sh
+python3 -B scripts/manage.py install --client codex --source .
+```
 
-> 所有编写或修改代码的任务开始前必须使用 supercoding。当前上下文已完整加载且未变化时直接沿用，否则调用客户端实际提供的 Skill 名称，或读取其 SKILL.md。只加载当前功能对应参考，页面变更必须检查样式。遵守客户端约束、用户明确要求及项目明确规范，默认只检查本次相关旧代码，不自动全仓整改。普通聊天和非编码文件任务不触发。
+自定义 profile、仅项目使用、远程主机或容器，应显式指定 agent 实际运行位置：
 
-完整插件模式可能显示 `supercoding:supercoding`，独立安装通常显示 `supercoding`；以客户端实际可用名称为准。
+```sh
+python3 -B scripts/manage.py install --target "/absolute/project/.agents/skills/supercoding" --source .
+```
 
-## 规则语言和回复语言
+已有目标会停止安装，不修改全局指令、信任配置或插件缓存。目标或祖先路径包含软链接时拒绝操作，应单独核对共享源并更新。macOS 临时目录如果通过系统 `/var` 软链接访问，请使用规范的 `/private/...` 路径；管理器会拒绝系统 `/tmp` 别名，安全检查必须使用规范临时路径。
 
-[SKILL.md（英文）](../skills/supercoding/SKILL.md) 和 8 份参考规范统一使用英文，各种语言的任务共用相同规则。助手按用户偏好的语言回复；中文需求不需要中文入口或语言路由。安装时完整复制现有运行时目录即可。
+## 可选会话插件
 
-仅 README 和安装说明提供中英文切换；运行时规则、维护文档、评测协议和单套评测场景统一使用英文。
+Claude Code 和 CodeBuddy 仍支持会话级本地加载：
 
-## 检查是否工作
+```sh
+claude --plugin-dir "/absolute/path/to/supercoding"
+codebuddy --plugin-dir "/absolute/path/to/supercoding"
+```
 
-1. 在新测试会话查看技能列表，确认对应入口可发现，且没有重复同名版本。
-2. 插件模式确认 SessionStart 提醒出现，没有 Python、路径或 JSON 错误。
-3. 提交一个小编码任务，确认编码前加载入口，只读取相关参考。
-4. 同一会话继续同类修改，确认没有重复读取未变化的全部规范。
-5. 用普通翻译请求检查不会触发工程流程。
-6. 在独立新会话分别提交中文、英文编码任务，确认共用英文规则，回复使用用户偏好的语言。
+这不是永久安装。SessionStart 简短提醒只读取本地文件并输出 JSON，不联网更新、不扫描项目。Gemini 通过扩展 Hook 使用同一提醒，Hermes 使用自身的注册 Hook；Codex 和 OpenClaw 通过原生 Skill 注册加载规则，不使用这份 shell 提醒。
 
-以上涉及真实客户端行为，需要实际观察；本仓库的结构与脚本测试不能替代。
+Hook 要求 `python3`（Python 3.9+）和兼容 shell。Windows Hook 启动未验证，不具备条件时使用独立 Skill。遵循客户端信任提示。
+
+## 版本检查、更新和回退
+
+**原生插件：**按客户端专页操作。刷新 marketplace 和更新已安装插件可能是两步；是否自动更新取决于宿主配置。supercoding 不会在启动时拉取代码。
+
+**独立副本：**从可信源码运行 `scripts/manage.py`。`check` 和 `--dry-run` 不写本地文件；不带 `--source` 时查询 GitHub 最新稳定 Release：
+
+```sh
+python3 -B scripts/manage.py check --client codex
+python3 -B scripts/manage.py update --client codex --dry-run
+python3 -B scripts/manage.py update --client codex
+```
+
+Release 必须使用与入口版本一致的 `vX.Y.Z` 标签。工具将标签解析为不可变 commit，从有大小限制的归档中只读取九个运行文件。没有正式 Release 时明确报错，不回退到默认分支；网络和限流错误同样明确失败。需要离线使用本地源码：
+
+```sh
+python3 -B scripts/manage.py check --client codex --source .
+python3 -B scripts/manage.py update --client codex --source . --dry-run
+python3 -B scripts/manage.py update --client codex --source .
+```
+
+将 `--source` 换成 `--version X.Y.Z` 可选择指定的稳定 Release。更新拒绝降级，需要恢复旧版时使用保留的备份。
+
+从手动复制版本首次迁移，或已安装文件发生修改，需要显式接受替换。先看预览，再执行：
+
+```sh
+python3 -B scripts/manage.py update --client codex --source . --replace
+python3 -B scripts/manage.py rollback --client codex
+```
+
+`--replace` 不自动合并规则：它完整备份旧目录，安装新的标准文件。需要延续的定制内容应单独保存并决定是否重新应用。链接、特殊文件和超限文件会被拒绝，不会跟随或丢弃。
+
+同级 `.supercoding-state/` 保存 receipt、备份、锁和事务记录。回退需要保留它，不要复制到 Skill 内。备份持续保留，清理或归档需自行明确执行。回退验证文件哈希，并保留被换下的版本；未管理的旧备份恢复后仍为未管理状态。规则变化后开启新会话。
+
+### 操作中断
+
+普通异常会尝试恢复旧安装。进程在两次目录重命名之间中断，可能留下 `transaction.json`；后续操作会检测它。执行 `rollback` 可恢复记录并验证过的备份，即使目标目录暂时不存在。进程退出后系统释放管理锁，不要通过删除锁或状态文件绕过正在运行的操作。
+
+这是带事务记录的替换，不宣称断电安全或整个操作具有文件系统原子性。首次安装没有旧备份时中断，或状态/备份验证失败，应检查提示的 `.supercoding-state/` 并手动恢复；工具不会猜测或销毁数据。
+
+## 所有编码任务默认使用
+
+发现 Skill 不代表默认强制使用。将以下内容追加到客户端实际加载的指令文件，保留原有规则；安装不会自动写入：
+
+| 客户端 | 用户级或项目级指令 |
+| --- | --- |
+| Claude Code | `~/.claude/CLAUDE.md` 或项目 `CLAUDE.md` |
+| CodeBuddy | `~/.codebuddy/CODEBUDDY.md` 或项目 `CODEBUDDY.md` |
+| Codex | 对应范围的 `AGENTS.md` |
+| Gemini CLI | 对应范围的 `GEMINI.md` |
+| Hermes / OpenClaw | 当前工作区或 profile 支持的上下文文件 |
+
+```markdown
+## supercoding
+
+编写或修改代码前使用 supercoding，包括脚本、测试、构建配置和可运行示例；代码审查按需使用。
+上下文已有完整且未变化的规则时直接沿用，否则调用实际可用 Skill 名称或读取 SKILL.md。
+只读相关参考；微小任务可以只用入口。页面功能变更需要样式参考，已加载时直接复用。
+在客户端约束内，用户明确要求与项目明确规范优先。只检查相关旧代码，不自动全仓审计或整改。
+纯 README、文档、报告编写、翻译和普通交流不触发。混合任务仅对编码部分应用规范。
+```
+
+插件可能暴露 `supercoding:supercoding`，独立安装通常为 `supercoding`，以实际名称为准。这是 agent 指令，不是写入拦截或额外工具授权。
+
+## 语言与验证
+
+运行规则和参考统一英文，回复跟随用户语言。README 和安装说明双语，维护与评测材料英文。
+
+新会话中确认只有一份入口，用小编码任务观察按需加载，再用同类任务检查上下文复用；用纯文档润色和翻译检查不会触发。这些模型行为需实际观察，确定性打包测试不能替代。
 
 ## 安装排错
 
-| 现象 | 检查与处理 |
+| 现象 | 处理 |
 | --- | --- |
-| 技能列表里没有出现 | 确认路径以 `skills/supercoding/SKILL.md` 结尾，同级 `references/` 内有 8 份规范。避免多嵌套成 `supercoding/supercoding/SKILL.md`，或把整个仓库当作 Skill 复制。重新开启会话，并检查客户端是否禁用了 Skill。 |
-| 能看到 Skill，但没有每次编码都使用 | 可发现不代表强制使用。按 README 将默认编码规则加入对应用户级或项目级指令文件，保留已有规则；用实际可用的 Skill 名称显式调用，确认能正常访问。 |
-| 出现重复入口或重复提醒 | 检查用户级、项目级安装、会话插件加载和软链接。选择一种安装方式，比较版本后再移除已确认的重复项；不要直接删除共享软链接指向的目录。 |
-| 安装命令提示目标已存在 | README 命令会主动停止，避免覆盖。先查看现有目录或软链接，与源码比较，保留定制并备份，再明确执行更新。 |
-| 缺少 `python3`、版本过低或 hook 失败 | 插件 hook 需要客户端进程能通过 `python3` 运行 Python 3.9+。在启动环境检查 `python3 --version`、插件信任及 hook 权限和客户端错误输出。独立 Skill 不需要 Python；Windows hook 启动尚未验证。 |
-| 下次会话插件消失 | 启动时再次传入 `--plugin-dir`，使用加引号的仓库根目录绝对路径。该路径应包含插件清单、`skills/` 和 `hooks/`；只传运行时 Skill 目录不能加载完整插件。此参数只对当前会话生效。 |
-| hook 提示入口不存在 | 确认插件副本包含 `skills/supercoding/SKILL.md`，没有移动或只复制部分文件。恢复完整仓库布局，不要直接盲改错误信息中的路径。 |
-| 源码更新后仍使用旧行为 | 独立安装的副本不会自动更新。比较并同步已安装的运行时目录，保留定制后重新开启会话；插件模式确认加载的仓库路径，并带 `--plugin-dir` 重启。 |
-| 中文任务里看到英文规则或 hook 文字 | 运行时规则和技术输出使用英文属于预期行为。需要时明确要求中文回复，无须另装中文 Skill。 |
+| 没发现 Skill | 检查完整结构、当前 profile/workspace、允许列表和禁用项，按宿主要求重启或刷新。 |
+| 重复规则或提醒 | 比较独立、项目、插件和共享路径，再移除已确认重复项。 |
+| 已有目标 | 使用 `check` / `update --dry-run`，首次安装命令不能当升级命令。 |
+| 未管理或有修改 | 先审阅差异，再显式 `update --replace`，完整保留备份。 |
+| 软链接被拒绝 | 检查共享源及使用者，单独更新源，不替换软链接。 |
+| 没有稳定 Release / 离线 | 使用可信本地源码的 `--source`，不会静默回退分支。 |
+| 锁或未完成事务 | 等当前操作完成；进程中断后通过已验证回退恢复，不删除状态。 |
+| 仍是旧行为 | 核对实际加载路径，通过宿主升级或独立工具更新后启动新会话。 |
+| Hook 失败 | 检查 Python、shell、信任及路径展开；独立 Skill 不要求 Hook。 |
 
-仍无法解决时，记录客户端及版本、操作系统、安装方式、目录层级、复现步骤和完整错误，去除凭证与私密数据。仓库检查通过有助于排查文件结构问题，但不能证明真实客户端已加载插件或遵循规范。
-
-## 安装命令、更新与现有版本
-
-可直接复制的首次安装命令、全局指令文件位置和使用示例见 [README](../README.zh-CN.md)。本仓库目前未提供 marketplace 清单；完整插件通过 `--plugin-dir` 会话加载，不能把它当成永久安装。
-
-独立 Skill 复制安装不会随源码更新自动变化。更新时先比较源目录与安装目录，保留原有定制，再显式同步；插件模式更新源码后重新开启带加载参数的会话。
-
-切换安装方式前检查已有同名目录和其他客户端软链接，避免重复加载，不要直接覆盖或删除正在使用的版本。卸载插件也不等于删除此前手动加入的全局规则，后者需单独维护。
+反馈问题时记录客户端版本、OS、安装模式、相关路径、步骤和原始错误，不附带凭证或私密内容。
