@@ -44,6 +44,21 @@ python3 -B scripts/manage.py install --client codex --source .
 
 Without Python, copy `skills/supercoding/` to your client's skills directory without overwriting an existing installation. See the [shared installation guide](docs/installation.md) for paths, Windows, project scope and troubleshooting. Plugin/extension packaging is available in this repository; no official marketplace, npm or ClawHub listing is claimed. Live-client verification limits are recorded in the client guides.
 
+### What has been verified
+
+Evidence is layered: **P** = deterministic package/adapter checks; **N** = native validator; **L** = live discovery/lifecycle; **M** = successful model task. One layer does not prove another.
+
+| Client | P | N | L | M |
+| --- | --- | --- | --- | --- |
+| Claude Code | Checked | Previously passed | Discovery + hook observed | Blocked: API connection |
+| CodeBuddy | Checked | Previously passed | Not scored | Blocked: tool permissions |
+| Codex | Checked | Not run | Not run | Not run |
+| Gemini CLI | Checked | Not run | Not run | Not run |
+| Hermes Agent | Fake-context registration | Not run | Not run | Not run |
+| OpenClaw | Manifest + JS import | Not run | Gateway not run | Not run |
+
+These are local records, not a six-client certification. See [evidence details](docs/installation.md#verification-evidence); remote CI, Windows hook startup and real with/without-Skill comparisons remain unverified.
+
 ## First use
 
 Start a new client session, confirm `supercoding` or `supercoding:supercoding` is available, and try:
@@ -90,6 +105,8 @@ python3 -B scripts/manage.py update --client codex --dry-run
 
 Online check/update requires a matching stable GitHub Release. Before one is published, or offline, add `--source .` to use a trusted local checkout. Review [update and recovery instructions](docs/installation.md#version-checks-updates-and-rollback) before applying changes; customized installations require explicit replacement, and symlink targets are refused.
 
+See [CHANGELOG](CHANGELOG.md) for rule and tooling changes. Identical version metadata can exist in different source revisions before release: compare changed files and commit IDs, not just the version label.
+
 ## Verification and contributing
 
 From the repository root:
@@ -97,6 +114,7 @@ From the repository root:
 ```sh
 python3 -B scripts/validate_skill.py
 python3 -B -m unittest discover -s tests -p 'test_*.py' -v
+python3 -B scripts/run_examples.py
 ```
 
 Deterministic checks cover packaging, local links, adapters and standalone update/recovery behavior. They do **not** establish automatic triggering, model compliance, visual correctness or performance gains. Real-client integration and model behavior require separate evidence; see [evaluation scenarios, runnable examples and observed limits](tests/evals/protocol.md).

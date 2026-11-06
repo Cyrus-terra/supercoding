@@ -23,6 +23,10 @@ python3 scripts/manage.py check --client gemini --source .
 python3 scripts/manage.py update --client gemini --source . --dry-run
 ```
 
-The shared SessionStart hook only emits a short coding reminder. It never performs extension updates; Gemini's manager owns source copies and updates. Use `gemini extensions install /absolute/path/to/supercoding` to test a local checkout before its changes are pushed. No global context file or permissions are installed. Use `--ref <tag-or-commit>` when you want a fixed source; `--auto-update` is optional and should be an explicit user choice.
+The shared SessionStart hook only emits a short coding reminder. It never performs extension updates; Gemini's manager owns source copies and updates. Use `gemini extensions install /absolute/path/to/supercoding` to test a local checkout. No global context file or permissions are installed. Use `--ref <tag-or-commit>` when you want a fixed source; `--auto-update` is optional and should be an explicit user choice.
+
+## Evidence levels
+
+**P:** manifest checks and simulated shell-variable substitution only. **N/L/M:** not run because Gemini CLI is unavailable. Simulation does not prove Gemini expansion or extension activation. See the [shared evidence matrix](../installation.md#verification-evidence).
 
 Official reference: [extension format and lifecycle](https://geminicli.com/docs/extensions/reference/). Gemini CLI is unavailable locally; shell/configuration checks do not replace a real activation test.

@@ -18,7 +18,7 @@ Passing the first two levels is not passed behavior evaluation. Skill maintenanc
 - `assertions` score observable behavior, code results and honest reporting, not similarity of wording.
 - The scenario set contains 22 cases and 83 assertions. All cases reference the same English rules; do not count translated variants as independent coverage.
 
-The debugging and review-feedback cases describe fixtures to prepare; they are not bundled runnable examples. For debugging, retain the pre-fix reproduction and the experiment that distinguishes competing causes. For review feedback, retain the relevant freshness/authorization requirements and check each accepted or rejected suggestion against them. For refactoring, compare the same behavior and observable side effects before/after; UI cases need an integrated user journey, and performance cases need comparable measurements. These additions remain behavior-unverified until actual client runs provide evidence.
+The debugging and review-feedback cases now have lightweight runnable Python fixtures. Refactoring has a Python analogue of the Kotlin scenario; passing it is not Kotlin verification. For debugging, retain the pre-fix reproduction and the experiment that distinguishes competing causes. For review feedback, retain the relevant freshness/authorization requirements and check each accepted or rejected suggestion against them. For refactoring, compare the same behavior and observable side effects before/after; UI cases need an integrated user journey, and performance cases need comparable measurements. These additions remain behavior-unverified until actual client runs provide evidence.
 
 ## Behavior evaluation procedure
 
@@ -34,26 +34,48 @@ Store results in a test workspace outside the Skill and application repository. 
 
 ## Runnable examples
 
-Two intentionally defective fixtures are bundled under `examples/`:
+Five fixtures are bundled under `examples/`, with independent correct implementations under `controls/`. Controls are never copied into the model workspace. Four originals contain intentional defects; refactoring starts from valid behavior.
 
 - `search-race/`: a framework-independent JavaScript search controller, with four checks controlling response completion order, stale errors and loading ownership. It has no DOM; it does not evaluate React integration, visual layout or cancellation support.
 - `streaming/`: a Python CSV transformer, with checks for a bounded input-to-output window, ordered output, worker limits, timeout forwarding, failure propagation and closed files. The transform callback owns enforcing its downstream I/O timeout. These checks do not measure throughput or prove a constant-memory bound for arbitrary row sizes.
 
+- `debugging/`: seven input rows lose a partial final batch; full/empty batches and storage failures are neighboring cases. A passing fix alone does not prove that the model performed the discriminating experiment.
+- `refactoring/`: a passing Python characterization baseline covers serialization, zero/null values, error behavior and audit calls. A control simplifies duplication while retaining those observations; it is not Kotlin execution or an automatic readability score.
+- `review-feedback/`: expose filter-key collisions, preserve five-second freshness and separate read/export permissions. Checks establish these behaviors, while the explanation of accepted/rejected suggestions needs trace review.
+
+Streaming checks explicitly force a later row to finish before the first row. No check here measures a production speedup or verifies arbitrary-input memory bounds.
+
 From the repository root:
 
 ```sh
-# No model requests: confirm that the original defects reproduce.
+# No model requests: validate known original outcomes and all correct controls.
 python3 -B scripts/run_examples.py
 
 # Opt in to real model requests using your existing client/account.
 python3 -B scripts/run_examples.py --client claude
 # Or:
 python3 -B scripts/run_examples.py --client codebuddy
+
+# Select one case and an explicit model; client mode is still opt-in.
+python3 -B scripts/run_examples.py --client claude --case debugging --model YOUR_MODEL --max-budget-usd 1 --client-timeout 180
+
+# Prepare identical neutral tasks only; no client starts and isolation is NOT established.
+python3 -B scripts/run_examples.py --prepare-comparison
 ```
 
 Requires Python 3.9+ and Node.js 18+. Client mode additionally requires the chosen authenticated client and may consume account quota or incur charges. Each case runs in a fresh temporary directory with the repository plugin, project-only settings, no MCP servers, and only Read/Edit/Skill/Glob/Grep tools allowed. No application repository or installed Skill is modified. The evaluator runs checks externally and saves JSON output and patches outside the repository. Claude mode requests a per-case $1 budget ceiling; CodeBuddy mode caps each case at 16 turns without a monetary ceiling. Both have a 180-second process timeout, and the runner stops after a client error. These controls are not a total-run cost guarantee.
 
-The fixtures should fail before implementation. A successful baseline-only runner exit means the defects reproduced, not that the implementations passed. Client runs must change the implementation, preserve checks and pass the independent checks. Inspect the saved tool trace for Skill discovery, entry/reference use and unrelated changes; passing code checks alone does not establish these. The client is explicitly asked to use the Skill, so these examples do not measure automatic triggering or establish a with/without-Skill comparison. Retain sanitized results only; raw client logs may contain local paths or account metadata.
+A successful offline runner exit requires exact known failure identities/counts for the four defective originals, a passing refactoring original, and five passing correct controls. Syntax/import errors, missing executables, unexpected test failures and timeouts are not successful reproductions. Client runs must change only the implementation and pass trusted checks. Before any post-check, recursive file/type/content inventory rejects check edits, deletion, extra directories/files and links. The evaluator builds its check directory from held fixture bytes, not candidate checks. This is integrity protection, not an OS sandbox: evaluate candidate code only in an appropriately isolated environment. Inspect the saved tool trace for Skill discovery, entry/reference use and unrelated changes; passing code checks alone does not establish these. The client is explicitly asked to use the Skill, so these examples do not measure automatic triggering or establish a with/without-Skill comparison. Retain sanitized results only; raw client logs may contain local paths or account metadata.
+
+## Comparison preparation and isolation
+
+`--prepare-comparison` produces separate `with-skill`/`without-skill` directories containing identical neutral TASK.txt prompts and originals, plus a `prepared_not_evaluated` manifest. It never starts a client or copies the correct controls. Use proven independent client profiles with the same model, limits and task. Enable the Skill only in the treatment profile. Audit user/global Skills, SessionStart hooks, parent instruction files, workspace trust and MCP exposure before either run. Changing HOME alone does not demonstrate isolation; if contamination cannot be excluded, mark the control invalid and do not report an improvement.
+
+The forced-client mode explicitly invokes the Skill and does not establish automatic loading. It does not grant shell/network tools, so a model's unexecuted debugging experiment remains **not evaluated**, even when the evaluator later verifies the fix. Inspect tool traces for reasoning, selective loading and feedback decisions. Record per-assertion pass/fail/not-evaluated manually with evidence; fixture pass counts are not scenario assertion scores.
+
+## Current offline evidence
+
+Five original/control pairs are executable offline. Runner regression tests cover expected outcomes, infrastructure errors, timeout, recursive tampering/deletion/links, invalid client results, selection and neutral preparation. These deterministic checks do not supply real-model results. Remote CI, actual published-release upgrading and successful real-client tasks are separate unverified layers.
 
 ## Observed local results (2026-11-06)
 
@@ -68,7 +90,7 @@ The following records describe earlier runs and their then-current scenario/test
 | Claude Code plugin | Discovered `supercoding:supercoding`; SessionStart hook exited 0. Both model calls returned `API Error: Unable to connect to API (ECONNREFUSED)`. | No implementation edits; model behavior not evaluated. |
 | CodeBuddy client attempt | Model tool requests encountered non-interactive permission denial; runner timed out after 180 seconds and stopped. | No implementation edits; no permission-bypass retry. Plugin lifecycle not scored. |
 
-Raw JSON/tool traces and empty implementation patches were retained in temporary evaluation workspaces outside the repository. They are local diagnostic evidence, not published artifacts or durable benchmark data. CodeBuddy's restricted headless invocation did not authorize tools in the tested configuration; the runner does not bypass permissions. A future authorized client run is still required to complete the two examples. No automatic-trigger rate, with/without-Skill improvement, visual regression result or speedup was measured.
+Raw JSON/tool traces and empty implementation patches were retained in temporary evaluation workspaces outside the repository. They are local diagnostic evidence, not published artifacts or durable benchmark data. CodeBuddy's restricted headless invocation did not authorize tools in the tested configuration; the runner does not bypass permissions. Future authorized client runs are still required to complete the model evaluations; the suite now contains five fixtures. No automatic-trigger rate, with/without-Skill improvement, visual regression result or speedup was measured.
 
 ## Acceptance priorities
 

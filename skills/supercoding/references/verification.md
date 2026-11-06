@@ -43,7 +43,7 @@ Use existing project commands and tools. Start locally and expand by impact; run
 - Require concrete value from new dependencies. Compare existing packages and the standard library; assess size, maintenance, licensing and compatibility without adding a large library for a small feature.
 - Respect lockfiles and package managers. Do not arbitrarily upgrade, downgrade or replace global toolchains.
 - Dependency additions, installations and network operations follow current client authorization; this Skill does not relax it.
-- Combine enabled compatibility Skills without duplicating workflows. When a tool is unsupported, use an available equivalent check and explain its limits.
+- Combine relevant available specialist guidance (for example database, framework, security or target-browser rules) with this foundation. Reuse loaded instructions, preserve project priorities and avoid duplicate workflows. This does not authorize installing/enabling Skills, online discovery or broader tool permissions. When a tool is unsupported, use an available equivalent check and explain its limits.
 
 ## Keep delivery concise
 

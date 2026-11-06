@@ -12,7 +12,7 @@ hermes plugins list
 hermes plugins update supercoding
 ```
 
-插件注册按需 Skill `supercoding:supercoding`。安装或更新后启动新会话。新版提供 `hermes plugins doctor`，旧版使用 `hermes plugins list` 和启动诊断。远程安装需要先推送新增适配器。本地测试只在目标不存在时，将源码复制到当前 profile 的插件目录并显式启用，不覆盖已安装插件。
+插件注册按需 Skill `supercoding:supercoding`。安装或更新后启动新会话。新版提供 `hermes plugins doctor`，旧版使用 `hermes plugins list` 和启动诊断。仓库已包含适配器。本地测试只在目标不存在时，将源码复制到当前 profile 的插件目录并显式启用，不覆盖已安装插件。
 
 ## 独立 Skill
 
@@ -24,5 +24,9 @@ python3 scripts/manage.py update --client hermes --source . --dry-run
 ```
 
 插件不会把运行状态写入安装目录，也不会在 `pre_llm_call` 中自动更新自身。本机 update 命令拉取已安装来源，不宣称所有版本都提供固定 ref 参数；需要可复现时使用经过审阅的固定 checkout 或独立来源。
+
+## 证据分层
+
+**P：**fake context 注册和首次回调检查。**N/L/M：**原生校验、真实插件生命周期和模型任务未运行。fake context 不是 Hermes 会话，详见[共用矩阵](../installation.zh-CN.md#验证证据)。
 
 官方依据：[Hermes 插件和随附 Skill](https://hermes-agent.nousresearch.com/docs/developer-guide/plugins)。隔离 fake context 已覆盖注册和首次提醒，真实 Hermes 模型会话尚未验证。

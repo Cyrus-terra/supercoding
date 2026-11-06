@@ -44,6 +44,21 @@ python3 -B scripts/manage.py install --client codex --source .
 
 没有 Python 时，可将 `skills/supercoding/` 复制到客户端技能目录，不覆盖已有安装。默认路径、Windows、项目级范围和排错见[共用安装指南](docs/installation.zh-CN.md)。本仓库提供插件/扩展封装，但不宣称已进入官方市场、npm 或 ClawHub。各客户端真实验证的限制见对应安装指南。
 
+### 已验证到哪一层
+
+证据分层：**P**＝确定性打包/适配器检查；**N**＝宿主原生校验；**L**＝真实发现/生命周期；**M**＝成功完成模型任务。各层不能互相替代。
+
+| 客户端 | P | N | L | M |
+| --- | --- | --- | --- | --- |
+| Claude Code | 已检查 | 此前通过 | 观察到发现与 Hook | API 连接阻塞 |
+| CodeBuddy | 已检查 | 此前通过 | 未评分 | 工具权限阻塞 |
+| Codex | 已检查 | 未运行 | 未运行 | 未运行 |
+| Gemini CLI | 已检查 | 未运行 | 未运行 | 未运行 |
+| Hermes Agent | fake context 注册检查 | 未运行 | 未运行 | 未运行 |
+| OpenClaw | 清单与 JS 导入 | 未运行 | 未运行 Gateway | 未运行 |
+
+这些是本地记录，不是六客户端认证。详见[证据说明](docs/installation.zh-CN.md#验证证据)；远端 CI、Windows Hook 启动及真实有/无 Skill 对照仍未验证。
+
 ## 首次使用
 
 新建客户端会话，确认 `supercoding` 或 `supercoding:supercoding` 可用，然后尝试：
@@ -90,6 +105,8 @@ python3 -B scripts/manage.py update --client codex --dry-run
 
 联网检查/更新需要对应的稳定 GitHub Release。正式发布前或离线使用时，加 `--source .` 从可信本地源码读取。执行更新前先阅读[更新与恢复说明](docs/installation.zh-CN.md#版本检查更新和回退)；定制安装需要显式替换，工具拒绝软链接目标。
 
+规则和工具具体变化见 [CHANGELOG（英文）](CHANGELOG.md)。正式发布前，不同源码修订可能使用相同版本号，应结合文件变化和 commit 判断，而不只看版本标签。
+
 ## 验证与贡献
 
 在仓库根目录执行：
@@ -97,6 +114,7 @@ python3 -B scripts/manage.py update --client codex --dry-run
 ```sh
 python3 -B scripts/validate_skill.py
 python3 -B -m unittest discover -s tests -p 'test_*.py' -v
+python3 -B scripts/run_examples.py
 ```
 
 确定性检查覆盖打包、本地链接、适配器和独立更新/恢复行为，**不能证明**自动触发、模型遵循率、视觉正确性或性能提升。真实客户端集成与模型行为需要独立证据，见[评测场景、可运行案例及已观察到的限制（英文）](tests/evals/protocol.md)。

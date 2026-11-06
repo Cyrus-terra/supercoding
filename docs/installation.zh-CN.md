@@ -6,7 +6,7 @@
 
 需要客户端管理安装和升级时，使用原生插件或扩展；只需要可移植规则时，使用不带 Hook 和运行依赖的独立 Skill。每个客户端尽量只发现一份安装；共享的 `.agents/skills` 可能被多个客户端同时发现。
 
-克隆 `https://github.com/Cyrus-terra/supercoding.git` 或解压 ZIP。下文命令从仓库根目录运行。新增打包在本地源码中可用，推送后远程用户才能获得；不代表已经进入官方市场、npm 或 ClawHub。
+克隆 `https://github.com/Cyrus-terra/supercoding.git` 或解压 ZIP。下文命令从仓库根目录运行。仓库已包含客户端封装，但不代表已经进入官方市场、npm 或 ClawHub。
 
 ## 客户端兼容性
 
@@ -22,6 +22,21 @@
 | OpenClaw | `openclaw.plugin.json`、`package.json`、`index.js` | [OpenClaw](clients/openclaw.zh-CN.md) |
 
 六种封装使用同一份[英文运行规则](../skills/supercoding/SKILL.md)。通过客户端使用 DeepSeek 等模型时，安装格式仍由客户端决定。打包或适配器检查不等于模型遵循验证，见[实际评测与边界（英文）](../tests/evals/protocol.md)。本机 Codex 可执行文件不完整、没有 Gemini CLI，这两个客户端的真实集成尚未验证。
+
+## 验证证据
+
+各层独立：**P**（打包/适配器测试）、**N**（宿主原生校验）、**L**（真实发现/生命周期）、**M**（成功完成模型任务）。目前本地证据如下：
+
+| 客户端 | P | N | L | M |
+| --- | --- | --- | --- | --- |
+| Claude Code | 清单、Hook 输出和 POSIX 展开 | 此前通过 | 观察到命名空间发现与 Hook | API 连接阻塞 |
+| CodeBuddy | 清单、Hook 输出和 POSIX 展开 | 此前通过 | 未评分 | 无交互工具权限阻塞 |
+| Codex | 清单与 marketplace 契约 | 未运行 | 本机可执行文件不完整，未运行 | 未运行 |
+| Gemini CLI | 清单与变量替换模拟 | 未运行 | 没有 CLI，未运行 | 未运行 |
+| Hermes Agent | fake context 注册与首次提醒 | 未运行 | 未运行真实插件会话 | 未运行 |
+| OpenClaw | 清单与无依赖 JS 导入 | 未运行 | 未运行 Gateway 发现 | 未运行 |
+
+历史宿主/客户端观察不是对后续改动的重新验证。确定性适配器测试不能替代真实宿主运行。Windows Hook 启动、远端 CI、自动触发率和模型效果提升均需独立证据，详见[协议与历史记录（英文）](../tests/evals/protocol.md)。
 
 ## 独立 Skill 安装
 

@@ -10,7 +10,7 @@
 claude --plugin-dir "/absolute/path/to/supercoding"
 ```
 
-新增打包推送后，可在 Claude Code 中执行以下命令持久安装（本地测试时将 `Cyrus-terra/supercoding` 换为源码绝对路径）：
+可在 Claude Code 中执行以下命令持久安装（本地测试时将 `Cyrus-terra/supercoding` 换为源码绝对路径）：
 
 ```text
 /plugin marketplace add Cyrus-terra/supercoding
@@ -35,5 +35,9 @@ python3 scripts/manage.py update --target "$HOME/.claude/skills/supercoding" --s
 ## 限制
 
 Hook 只读，不扫描项目、不联网更新，也不修改全局指令。需要固定来源时，使用已审阅 tag/commit 的本地 checkout 和 marketplace，不假设宿主统一提供固定版本参数。打包检查不能证明模型遵循。
+
+## 证据分层
+
+**P：**确定性清单/Hook 检查。**N：**此前原生校验通过。**L：**观察到命名空间发现和 SessionStart。**M：**没有成功模型任务，API 连接阻塞。历史宿主检查不代表后续修改已验证，详见[共用矩阵](../installation.zh-CN.md#验证证据)。
 
 官方依据：[Claude 插件参考](https://code.claude.com/docs/en/plugins-reference)。本机可验证插件和 marketplace；此前模型调用因连接失败未完成。

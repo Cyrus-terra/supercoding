@@ -1,0 +1,48 @@
+name: Offline checks
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            python: '3.13'
+          - os: macos-latest
+            python: '3.13'
+          - os: windows-latest
+            python: '3.13'
+          - os: ubuntu-latest
+            python: '3.9'
+    runs-on: ${{ matrix.os }}
+    env:
+      PYTHONUTF8: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate repository and standalone runtime
+        run: |
+          python -B scripts/validate_skill.py
+          python -B scripts/validate_skill.py skills/supercoding
+      - name: Deterministic regression tests
+        run: python -B -m unittest discover -s tests -p "test_*.py" -v
+      - name: Original baselines and correct controls (no model calls)
+        run: python -B scripts/run_examples.py
+      - name: Whitespace checks
+        run: git diff --check

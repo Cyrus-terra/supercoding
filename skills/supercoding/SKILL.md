@@ -19,6 +19,7 @@ Keep correctness and safety as the baseline. Reduce unnecessary data, computatio
 - This Skill supplies engineering judgment. It does not additionally mandate interviews, approvals, documents, TDD, multiple agents, worktrees, commits or dependency installation. Follow existing processes without duplicating them.
 - Resolve clear, reversible routine choices independently. Ask only for missing information that materially affects requirements, contracts or authorized scope.
 - Reading this Skill grants no permission to push, deploy, delete, publish externally or send messages.
+- Combine relevant available specialist Skills with this foundation; reuse loaded rules without duplicating workflows. Do not automatically install, enable or search online for Skills, or expand permissions.
 
 ## Coding entry and context budget
 

@@ -277,7 +277,7 @@ def validate(root):
         for path in (document, counterpart):
             documentation[path] = check_links(path, repository, errors)
         check_pair(document, counterpart, documentation, errors)
-    for document in (repository / "docs/development.md", repository / "tests/evals/protocol.md"):
+    for document in (repository / "docs/development.md", repository / "tests/evals/protocol.md", repository / "CHANGELOG.md"):
         check_links(document, repository, errors)
     client_documents = []
     for client in CLIENTS:

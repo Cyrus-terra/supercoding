@@ -119,7 +119,7 @@ class RepositoryTests(unittest.TestCase):
                     cwd=self.temporary.name,
                     env=environment,
                     capture_output=True,
-                    text=True,
+                    text=True, encoding="utf-8",
                     timeout=10,
                     check=True,
                 )
@@ -140,7 +140,10 @@ class RepositoryTests(unittest.TestCase):
                 self.assertEqual(result.stderr, "")
 
     def test_hook_shell_expansion_for_claude_codebuddy_and_gemini(self):
-        command = json.loads((self.repo / "hooks/hooks.json").read_text())["hooks"]["SessionStart"][0]["hooks"][0]["command"]
+        shell = shutil.which("sh")
+        if os.name == "nt" or not shell:
+            self.skipTest("POSIX shell simulation only; Windows native hook startup unverified")
+        command = json.loads((self.repo / "hooks/hooks.json").read_text(encoding="utf-8"))["hooks"]["SessionStart"][0]["hooks"][0]["command"]
         for client in ("claude", "codebuddy", "gemini"):
             with self.subTest(client=client):
                 environment = os.environ.copy()
@@ -151,7 +154,7 @@ class RepositoryTests(unittest.TestCase):
                     rendered = rendered.replace("${extensionPath}", str(self.repo))
                 else:
                     environment["CLAUDE_PLUGIN_ROOT"] = str(self.repo)
-                result = subprocess.run(["/bin/sh", "-c", rendered], env=environment, cwd=self.temporary.name, capture_output=True, text=True, timeout=10, check=True)
+                result = subprocess.run([shell, "-c", rendered], env=environment, cwd=self.temporary.name, capture_output=True, text=True, encoding="utf-8", timeout=10, check=True)
                 self.assertIn(str(self.skill / "SKILL.md"), json.loads(result.stdout)["hookSpecificOutput"]["additionalContext"])
 
     def test_hermes_registration_and_first_turn_reminder(self):
@@ -175,36 +178,38 @@ class RepositoryTests(unittest.TestCase):
 
     def test_documented_shell_blocks_parse(self):
         import re
+        if not any(shutil.which(shell) for shell in ("sh", "bash", "zsh")):
+            self.skipTest("No supported shell available for syntax checks")
         documents = [self.repo / "README.md", self.repo / "README.zh-CN.md", *self.repo.glob("docs/installation*.md"), *self.repo.glob("docs/clients/*.md")]
         for document in documents:
-            for block in re.findall(r"```sh\n(.*?)```", document.read_text(), re.DOTALL):
+            for block in re.findall(r"```sh\n(.*?)```", document.read_text(encoding="utf-8"), re.DOTALL):
                 for shell in ("sh", "bash", "zsh"):
                     executable = shutil.which(shell)
                     if executable:
-                        result = subprocess.run([executable, "-n"], input=block, text=True, capture_output=True, timeout=10)
+                        result = subprocess.run([executable, "-n"], input=block, text=True, encoding="utf-8", capture_output=True, timeout=10)
                         self.assertEqual(result.returncode, 0, (document, shell, result.stderr))
 
     def test_openclaw_runtime_entry_is_dependency_free(self):
         node = shutil.which("node")
         if not node:
             self.skipTest("Node unavailable")
-        result = subprocess.run([node, "--input-type=module", "-e", "const {default: plugin} = await import(process.argv[1]); if (plugin.id !== 'supercoding' || typeof plugin.register !== 'function') process.exit(1); plugin.register({});", (self.repo / "index.js").as_uri()], capture_output=True, text=True, timeout=10)
+        result = subprocess.run([node, "--input-type=module", "-e", "const {default: plugin} = await import(process.argv[1]); if (plugin.id !== 'supercoding' || typeof plugin.register !== 'function') process.exit(1); plugin.register({});", (self.repo / "index.js").as_uri()], capture_output=True, text=True, encoding="utf-8", timeout=10)
         self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_new_client_version_drift_is_rejected(self):
         for manifest in ("gemini-extension.json", ".codex-plugin/plugin.json", "package.json", "openclaw.plugin.json"):
             with self.subTest(manifest=manifest):
                 path = self.repo / manifest
-                text = path.read_text()
-                path.write_text(text.replace('"1.3.0"', '"9.0.0"'))
+                text = path.read_text(encoding="utf-8")
+                path.write_text(text.replace('"1.3.0"', '"9.0.0"'), encoding="utf-8")
                 self.assert_invalid("versions must match")
-                path.write_text(text)
+                path.write_text(text, encoding="utf-8")
 
     def test_hook_missing_entry_fails(self):
         (self.skill / "SKILL.md").rename(self.skill / "entry.disabled")
         result = subprocess.run(
             [sys.executable, "-B", str(self.repo / "hooks/session-start.py")],
-            capture_output=True, text=True, timeout=10,
+            capture_output=True, text=True, encoding="utf-8", timeout=10,
         )
         self.assertNotEqual(result.returncode, 0)
         self.assertEqual(result.stdout, "")
@@ -212,7 +217,7 @@ class RepositoryTests(unittest.TestCase):
 
     def test_runtime_has_one_shared_rule_set(self):
         expected = {"SKILL.md", *(f"references/{name}" for name in VALIDATOR.REFERENCES)}
-        actual = {str(path.relative_to(self.skill)) for path in self.skill.rglob("*.md")}
+        actual = {path.relative_to(self.skill).as_posix() for path in self.skill.rglob("*.md")}
         self.assertEqual(actual, expected)
 
     def test_translated_runtime_entry_is_rejected(self):
@@ -277,16 +282,37 @@ class RepositoryTests(unittest.TestCase):
         self.assertEqual(sum(len(case["assertions"]) for case in cases), 83)
 
     def test_only_public_guides_have_translations(self):
-        actual = {str(path.relative_to(self.repo)) for path in self.repo.rglob("*.zh-CN.*")}
+        actual = {path.relative_to(self.repo).as_posix() for path in self.repo.rglob("*.zh-CN.*")}
         expected = {"README.zh-CN.md", "docs/installation.zh-CN.md"}
         expected.update(f"docs/clients/{client}.zh-CN.md" for client in VALIDATOR.CLIENTS)
         self.assertEqual(actual, expected)
+
+    def test_evidence_tables_keep_client_order_in_both_languages(self):
+        import re
+        clients = ['Claude Code', 'CodeBuddy', 'Codex', 'Gemini CLI', 'Hermes Agent', 'OpenClaw']
+        for relative in ('README.md', 'README.zh-CN.md', 'docs/installation.md', 'docs/installation.zh-CN.md'):
+            text = (self.repo / relative).read_text(encoding='utf-8')
+            table = re.search(r'\| (?:Client|客户端) \| P \| N \| L \| M \|\n(.*?)(?:\n\n|$)', text, re.DOTALL)
+            self.assertIsNotNone(table, relative)
+            rows = [line.split('|')[1].strip() for line in table[1].splitlines() if line.startswith('|') and '---' not in line]
+            self.assertEqual(rows, clients, relative)
+        for client in VALIDATOR.CLIENTS:
+            self.assertIn('## Evidence levels', (self.repo / f'docs/clients/{client}.md').read_text(encoding='utf-8'))
+            self.assertIn('## 证据分层', (self.repo / f'docs/clients/{client}.zh-CN.md').read_text(encoding='utf-8'))
+
+    def test_ci_is_offline_read_only_matrix(self):
+        workflow = (self.repo / '.github/workflows/ci.yml').read_text(encoding='utf-8')
+        for fragment in ('contents: read', 'ubuntu-latest', 'macos-latest', 'windows-latest', "python: '3.9'", 'scripts/run_examples.py'):
+            self.assertIn(fragment, workflow)
+        self.assertNotIn('--client ', workflow)
+        self.assertNotIn('secrets.', workflow)
+        self.assertNotIn('contents: write', workflow)
 
     def test_cli_default_root_independent_of_cwd(self):
         result = subprocess.run(
             [sys.executable, "-B", str(self.repo / "scripts/validate_skill.py")],
             cwd=self.temporary.name,
-            capture_output=True, text=True, timeout=10, check=True,
+            capture_output=True, text=True, encoding="utf-8", timeout=10, check=True,
         )
         self.assertIn("22 scenarios", result.stdout)
         self.assertIn("NOT evaluated", result.stdout)

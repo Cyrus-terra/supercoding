@@ -13,6 +13,8 @@ class StreamingChecks(unittest.TestCase):
         workers = 3
         consumed = completed = active = peak = emitted = 0
         lock = threading.Lock()
+        later_finished = threading.Event()
+        completion_order = []
         real_reader = csv.DictReader
         real_writer = csv.DictWriter
 
@@ -50,6 +52,12 @@ class StreamingChecks(unittest.TestCase):
                 active += 1
                 peak = max(peak, active)
             try:
+                if row['id'] == '0':
+                    self.assertTrue(later_finished.wait(5), 'later row never completed')
+                with lock:
+                    completion_order.append(row['id'])
+                if row['id'] == '1':
+                    later_finished.set()
                 return {'id': row['id'], 'value': str(int(row['value']) * 2)}
             finally:
                 with lock:
@@ -68,6 +76,7 @@ class StreamingChecks(unittest.TestCase):
             with destination.open(newline='', encoding='utf-8') as handle:
                 output = list(real_reader(handle))
             self.assertEqual(output, [{'id': str(i), 'value': str(i * 2)} for i in range(1000)])
+        self.assertLess(completion_order.index('1'), completion_order.index('0'))
         self.assertLessEqual(peak, workers)
         self.assertEqual(completed, 1000)
         self.assertEqual(active, 0)

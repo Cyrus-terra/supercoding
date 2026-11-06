@@ -13,7 +13,7 @@ codex
 /plugins
 ```
 
-These commands require the new packaging to be pushed to the repository. For local testing, use `codex plugin marketplace add /absolute/path/to/supercoding`. This is a repository marketplace, not an official marketplace listing. Use `codex plugin marketplace upgrade supercoding` to refresh the source, then check the installed plugin in `/plugins`; refresh alone does not prove the installed copy changed.
+The repository includes this packaging. For local testing, use `codex plugin marketplace add /absolute/path/to/supercoding`. This is a repository marketplace, not an official marketplace listing. Use `codex plugin marketplace upgrade supercoding` to refresh the source, then check the installed plugin in `/plugins`; refresh alone does not prove the installed copy changed.
 
 ## Standalone alternative
 
@@ -25,5 +25,9 @@ python3 scripts/manage.py update --client codex --source . --dry-run
 ```
 
 Codex marketplace refresh/update is host-managed. Start a new session after a plugin update. Do not confuse choosing a model with choosing the Skill installation path. To pin a source, use the host's `--ref <tag-or-commit>` marketplace option after a corresponding ref exists; do not assume the newest branch commit is a stable release.
+
+## Evidence levels
+
+**P:** deterministic manifest/marketplace contracts. **N/L/M:** not run; the incomplete local executable prevents native validation, discovery and model tasks. Launcher presence is not integration proof. See the [shared evidence matrix](../installation.md#verification-evidence).
 
 Official references: [plugin packaging and marketplaces](https://developers.openai.com/plugins/build/plugins.md), [Skill authoring](https://learn.chatgpt.com/docs/build-skills). Packaging is checked locally; the local Codex native executable is missing, so client discovery remains unverified.

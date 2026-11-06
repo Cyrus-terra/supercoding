@@ -46,6 +46,8 @@ Do: reuse a domain money formatter across two lists; keep separate orchestration
 
 Avoid: a universal orders-and-employees table with dozens of options, or a separate file for every one-line forwarding function.
 
+Refactoring contrast: do not move an audit call outside a loop merely to remove duplication; that changes count and ordering. Share the stable calculation while preserving each observable call, and compare the same cases before and after.
+
 ## Verification signals
 
 Check direct callers, dependency direction, original behavior and the diff. Explain which rule an extraction centralizes and which callers it affects. Shorter files alone do not establish better quality.

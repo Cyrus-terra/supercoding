@@ -42,6 +42,10 @@ Within the actual supported range, check:
 - Avoid repeated synchronous layout reads/writes during scrolling or animation. Add complex optimizations only for actual bottlenecks.
 - Lazy content needs placeholders, error feedback and necessary retries. Keep critical initial text, images and actions timely.
 
+## Decision contrast
+
+Avoid making room for a new filter with an unscoped width override that breaks other pages. Prefer the existing filter layout and local wrapping rules; check the narrowest supported width, long labels, loading and failure/retry through the actual page.
+
 ## Verification and evidence
 
 When runtime/browser tools are available, exercise the affected user journey, not just the new widget in isolation: reach it through the existing page, perform the action, observe results and failure/retry feedback, and confirm existing controls still work. Check representative states, inspecting screenshots or existing visual tests. Expand shared-style checks to representative consumers. Distinguish static inspection, current-browser checks and target-environment checks.

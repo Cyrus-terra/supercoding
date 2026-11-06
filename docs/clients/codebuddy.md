@@ -10,7 +10,7 @@ Copy `skills/supercoding/` to `~/.codebuddy/skills/supercoding/` for a persisten
 codebuddy --plugin-dir "/absolute/path/to/supercoding"
 ```
 
-For a persistent plugin, run these inside CodeBuddy after the packaging is pushed, or add the absolute checkout path for local testing:
+For a persistent plugin, run these inside CodeBuddy, or add the absolute checkout path for local testing:
 
 ```text
 /plugin marketplace add Cyrus-terra/supercoding
@@ -35,5 +35,9 @@ Use `codebuddy plugin validate` when available. Start a new session after an upd
 ## Limits
 
 The plugin reminder is read-only. It does not grant permissions, audit the repository, or silently update installations. For fixed sources, use a reviewed tag/commit checkout with a local marketplace. The manifest/marketplace passed the installed client's validator; previous headless implementation attempts were blocked by tool permissions, not completed model evaluations.
+
+## Evidence levels
+
+**P:** deterministic manifest/hook checks. **N:** native validation previously passed. **L:** lifecycle not scored. **M:** no successful task; headless tool permission denial/timeout. No bypass retry is implied. See the [shared evidence matrix](../installation.md#verification-evidence).
 
 The command and manifest contract was checked against CodeBuddy's bundled plugin and marketplace documentation. Use the installed client's help if your version differs.

@@ -46,6 +46,10 @@ Distinguish code loading, data fetching and rendering:
 - Check costs and framework semantics before addressing repeated full cloning, serialization or unbounded deep watchers on hot paths.
 - Adjust image size/compression, dependency weight, duplicate bundles and blocking resources based on analysis; do not rewrite the build system merely to optimize.
 
+## Decision contrast
+
+Avoid calling a task streaming because its input is an iterator while collecting all futures or output rows. Prefer a bounded submitted-but-not-emitted window and incremental output; verify a deliberately slow first row without losing order or increasing the window.
+
 ## Verify benefits and costs
 
 Choose the smallest change that addresses the observed bottleneck, keeping its effects attributable rather than bundling unrelated optimizations. Compare before/after under similar conditions and verify functionality, data correctness, failure paths and resource peaks. Repeat comparable measurements when results are noisy; account for warmup and distinguish a consistent benefit from variation. If the benefit is absent or outweighed by complexity/resource costs, undo your optimization or choose another approach while preserving required correctness fixes and existing user changes. Report speed changes and tradeoffs in memory or complexity. Without a usable baseline or execution, report measures taken and metrics still needed; never invent improvement percentages or claim best performance.

@@ -6,7 +6,7 @@
 
 Install a native plugin/extension when you want the client's install and update management. Use the standalone Skill when you only need portable rules, without a hook or runtime dependency. Keep one discovered installation per client; shared `.agents/skills` directories can be visible to multiple clients.
 
-Clone `https://github.com/Cyrus-terra/supercoding.git` or extract its ZIP. Commands in this guide run from the repository root. New packaging is available from your checkout until its changes are pushed; no official marketplace, npm or ClawHub publication is claimed.
+Clone `https://github.com/Cyrus-terra/supercoding.git` or extract its ZIP. Commands in this guide run from the repository root. The repository contains the client packaging; no official marketplace, npm or ClawHub publication is claimed.
 
 ## Client compatibility
 
@@ -22,6 +22,21 @@ Official formats checked on **2026-11-06**. Each client has separate installatio
 | OpenClaw | `openclaw.plugin.json`, `package.json`, `index.js` | [OpenClaw](clients/openclaw.md) |
 
 All six load the same [English runtime Skill](../skills/supercoding/SKILL.md). Model choice, including using DeepSeek through a host, does not change the installation format. A package/adapter check is not proof of model compliance; see [observed results and limits](../tests/evals/protocol.md). Codex's local executable is incomplete and Gemini CLI is absent; those clients' live integration remains unverified.
+
+## Verification evidence
+
+Do not collapse these independent levels: **P** (package/adapter tests), **N** (native validator), **L** (real discovery/lifecycle), and **M** (successful model task). The current local evidence is:
+
+| Client | P | N | L | M |
+| --- | --- | --- | --- | --- |
+| Claude Code | Manifest, hook output and POSIX expansion | Previously passed | Namespaced discovery + hook observed | API connection blocked |
+| CodeBuddy | Manifest, hook output and POSIX expansion | Previously passed | Not scored | Headless tool permissions blocked |
+| Codex | Manifest/marketplace contracts | Not run | Not run: incomplete local executable | Not run |
+| Gemini CLI | Manifest + simulated substitution | Not run | Not run: CLI unavailable | Not run |
+| Hermes Agent | Fake-context registration/first turn | Not run | Real plugin session not run | Not run |
+| OpenClaw | Manifest + dependency-free JS import | Not run | Gateway discovery not run | Not run |
+
+Historical native/client observations are not revalidation of later source changes. Deterministic adapter checks are not host execution. Windows hook startup, remote CI results, and automatic-trigger/model improvement claims need separate evidence. See the [protocol and historical records](../tests/evals/protocol.md).
 
 ## Install the standalone Skill
 

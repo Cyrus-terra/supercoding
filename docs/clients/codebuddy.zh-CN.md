@@ -10,7 +10,7 @@
 codebuddy --plugin-dir "/absolute/path/to/supercoding"
 ```
 
-新增打包推送后可在 CodeBuddy 中持久安装，本地测试则添加源码绝对路径：
+可在 CodeBuddy 中持久安装，本地测试则添加源码绝对路径：
 
 ```text
 /plugin marketplace add Cyrus-terra/supercoding
@@ -35,5 +35,9 @@ python3 scripts/manage.py update --target "$HOME/.codebuddy/skills/supercoding" 
 ## 限制
 
 插件提醒只读，不授予额外权限，不自动审计仓库，也不会静默更新安装。固定来源可使用已审阅 tag/commit 的本地 checkout 和 marketplace。清单与 marketplace 通过本机客户端校验；此前无头实现案例被工具权限阻止，不能算完成模型评测。
+
+## 证据分层
+
+**P：**确定性清单/Hook 检查。**N：**此前原生校验通过。**L：**生命周期未评分。**M：**没有成功任务，无交互工具权限拒绝/超时。不代表授权绕过权限重试，详见[共用矩阵](../installation.zh-CN.md#验证证据)。
 
 命令和格式依据 CodeBuddy 随客户端安装的插件及 marketplace 文档核对；版本不同时以本机帮助为准。

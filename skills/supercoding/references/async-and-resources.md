@@ -40,6 +40,10 @@ Design empty, error, cancellation and retry states together with loading. Existi
 - Prevent duplicate listeners and polls after remounts, reconnects and resumes. Polling needs an interval, failure policy and stop condition.
 - Use idiomatic language/framework mechanisms for timeouts, cancellation, process exit and cleanup. Do not swallow cancellation signals.
 
+## Decision contrast
+
+Avoid a global loading boolean finalized by every request: an older completion can hide a newer wait. Prefer operation-owned state and latest-request guards; verify both stale successes and stale failures, even if cancellation is unavailable.
+
 ## Key verification
 
 For relevant changes, simulate an older slow request finishing last, two rapid criteria changes, failure, completion after cancellation, double submission and repeated page entry/exit. Check current data, loading, errors, listeners and connection counts. Run only scenarios relevant to the task.

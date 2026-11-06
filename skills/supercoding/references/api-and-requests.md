@@ -37,6 +37,10 @@ Distinguish transport infrastructure from domain APIs. Reuse existing framework 
 - Retried writes require idempotency. A timeout does not prove the server did not execute the operation.
 - Never log access tokens, private parameters or complete sensitive responses.
 
+## Decision contrast
+
+Avoid returning every attachment in a list, then replacing it with one request per cell. Prefer a bounded summary page and on-demand details; aggregate related initial reads only when request count and server cost justify it.
+
 ## Scenario checks
 
 Changing searches: cancel or enforce response versions. Debouncing reduces requests but does not guarantee response order.

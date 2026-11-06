@@ -43,7 +43,7 @@ class ManageTests(unittest.TestCase):
 
     def newer_source(self):
         entry = self.source / "SKILL.md"
-        entry.write_text(entry.read_text().replace('version: "1.3.0"', 'version: "1.10.0"'))
+        entry.write_text(entry.read_text(encoding="utf-8").replace('version: "1.3.0"', 'version: "1.10.0"'), encoding="utf-8")
 
     def snapshot(self):
         return {p.relative_to(self.base).as_posix(): p.read_bytes() for p in self.base.rglob("*") if p.is_file()}
@@ -51,7 +51,7 @@ class ManageTests(unittest.TestCase):
     def test_cli_install_check_update_rollback_end_to_end(self):
         command = [sys.executable, "-B", str(ROOT / "scripts/manage.py")]
         def run(action, *options):
-            result = subprocess.run([*command, action, "--target", str(self.target), *options], cwd=self.base, capture_output=True, text=True, timeout=15)
+            result = subprocess.run([*command, action, "--target", str(self.target), *options], cwd=self.base, capture_output=True, text=True, encoding="utf-8", timeout=15)
             self.assertEqual(result.returncode, 0, result.stderr)
             return result.stdout
         run("install", "--source", str(self.source))
@@ -100,15 +100,15 @@ class ManageTests(unittest.TestCase):
     def test_custom_files_require_replace_and_survive_backup(self):
         self.run_command("install")
         custom = self.target / "custom.txt"
-        custom.write_text("my notes")
+        custom.write_text("my notes", encoding="utf-8")
         self.newer_source()
         with self.assertRaisesRegex(ValueError, "modified target"):
             self.run_command("update")
         self.run_command("update", replace=True)
         backups = manager.state_root(self.target) / "backups"
-        self.assertEqual(next(backups.glob("*/custom.txt")).read_text(), "my notes")
+        self.assertEqual(next(backups.glob("*/custom.txt")).read_text(encoding="utf-8"), "my notes")
         self.run_command("rollback")
-        self.assertEqual(custom.read_text(), "my notes")
+        self.assertEqual(custom.read_text(encoding="utf-8"), "my notes")
         self.assertFalse(manager.inspection(self.target)[2])
 
     def test_unmanaged_snapshot_requires_explicit_adoption(self):
@@ -123,13 +123,16 @@ class ManageTests(unittest.TestCase):
         self.newer_source()
         self.run_command("install")
         entry = self.source / "SKILL.md"
-        entry.write_text(entry.read_text().replace("1.10.0", "1.3.0"))
+        entry.write_text(entry.read_text(encoding="utf-8").replace("1.10.0", "1.3.0"), encoding="utf-8")
         with self.assertRaisesRegex(ValueError, "downgrades"):
             self.run_command("update")
 
     def test_symlink_target_parent_and_state_refused(self):
         self.target.parent.mkdir(parents=True)
-        self.target.symlink_to(self.source, target_is_directory=True)
+        try:
+            self.target.symlink_to(self.source, target_is_directory=True)
+        except (OSError, NotImplementedError):
+            self.skipTest("symlink creation unavailable on this host")
         with self.assertRaisesRegex(ValueError, "symlink"):
             self.run_command("install")
         self.target.unlink()
@@ -143,10 +146,10 @@ class ManageTests(unittest.TestCase):
             self.run_command("install", target=str(self.source))
         unrelated = self.base / "other/supercoding"
         unrelated.mkdir(parents=True)
-        (unrelated / "important.txt").write_text("preserve")
+        (unrelated / "important.txt").write_text("preserve", encoding="utf-8")
         with self.assertRaisesRegex(ValueError, "identifiable"):
             self.run_command("update", target=str(unrelated), replace=True)
-        self.assertEqual((unrelated / "important.txt").read_text(), "preserve")
+        self.assertEqual((unrelated / "important.txt").read_text(encoding="utf-8"), "preserve")
 
     def test_switch_failure_restores_original_and_receipt(self):
         self.run_command("install")
@@ -223,7 +226,7 @@ class ManageTests(unittest.TestCase):
         self.newer_source()
         self.run_command("update")
         backup = next((manager.state_root(self.target) / "backups").glob("*/SKILL.md"))
-        backup.write_text("tampered")
+        backup.write_text("tampered", encoding="utf-8")
         with self.assertRaisesRegex(ValueError, "contents differ"):
             self.run_command("rollback")
         self.assertEqual(manager.installed_version(self.target), "1.10.0")
@@ -250,6 +253,44 @@ class ManageTests(unittest.TestCase):
         self.assertEqual(bundle["commit"], commit)
         self.assertEqual(bundle["version"], "1.3.0")
         self.assertTrue(download.call_args.args[0].endswith(commit))
+
+    def test_mocked_release_full_lifecycle_preserves_hashes_and_neighbors(self):
+        self.args.source = None
+        self.args.version = "1.3.0"
+        old_data, old_commit = self.archive()
+        self.newer_source()
+        new_data, _ = self.archive(root="supercoding-" + "b" * 40)
+        versions = {"1.3.0": (old_data, old_commit), "1.10.0": (new_data, "b" * 40)}
+        def api(path):
+            tag = path.rsplit("/", 1)[-1]
+            version = tag.removeprefix("v")
+            if path.startswith("releases/"):
+                return {"tag_name": tag, "draft": False, "prerelease": False}
+            return {"sha": versions[version][1]}
+        def download(url, limit):
+            return next(data for data, commit in versions.values() if url.endswith(commit))
+        self.target.parent.mkdir(parents=True)
+        neighbor = self.target.parent / "other-skill.txt"
+        neighbor.write_bytes(b"unrelated")
+        with patch.object(manager, "api", side_effect=api), patch.object(manager, "download", side_effect=download):
+            self.run_command("install")
+            old_files = manager.inventory(self.target)
+            old_receipt = manager.read_json(manager.state_root(self.target) / "receipt.json")
+            self.assertEqual(old_receipt["commit"], old_commit)
+            self.assertEqual(set(old_files), manager.FILES)
+            self.assertEqual(len(old_files), 9)
+            before = self.snapshot()
+            self.run_command("check", version="1.10.0")
+            self.run_command("update", dry_run=True)
+            self.assertEqual(before, self.snapshot())
+            self.run_command("update", dry_run=False)
+            receipt = manager.read_json(manager.state_root(self.target) / "receipt.json")
+            self.assertEqual(receipt["commit"], "b" * 40)
+            self.assertEqual(receipt["files"], manager.inventory(self.target))
+            self.run_command("rollback")
+            self.assertEqual(manager.inventory(self.target), old_files)
+            self.assertEqual(manager.read_json(manager.state_root(self.target) / "receipt.json"), old_receipt)
+        self.assertEqual(neighbor.read_bytes(), b"unrelated")
 
     def test_missing_release_never_falls_back_to_branch(self):
         error = HTTPError("url", 404, "not found", {}, None)

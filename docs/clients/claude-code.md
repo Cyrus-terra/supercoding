@@ -10,7 +10,7 @@ Use the standalone Skill for a persistent, lightweight installation. Copy `skill
 claude --plugin-dir "/absolute/path/to/supercoding"
 ```
 
-For a persistent plugin, use these commands inside Claude Code after the new packaging is pushed (or replace `Cyrus-terra/supercoding` with the absolute local checkout path for testing):
+For a persistent plugin, use these commands inside Claude Code (or replace `Cyrus-terra/supercoding` with the absolute local checkout path for testing):
 
 ```text
 /plugin marketplace add Cyrus-terra/supercoding
@@ -35,5 +35,9 @@ Run `claude plugin validate` for the plugin source when available, start a new s
 ## Limits
 
 The hook is read-only and does not scan projects, fetch updates or change global instructions. For fixed sources, use a reviewed tag/commit checkout and a local marketplace rather than assuming a host-wide pin flag exists. This package's model behavior is not proven by packaging checks.
+
+## Evidence levels
+
+**P:** deterministic manifest/hook checks. **N:** native validation previously passed. **L:** namespaced discovery and SessionStart observed. **M:** no successful model task; API connection blocked. Historical host checks do not validate later edits. See the [shared evidence matrix](../installation.md#verification-evidence).
 
 Official reference: [Claude plugin reference](https://code.claude.com/docs/en/plugins-reference). Plugin/marketplace validation is available locally; previously observed model calls failed to connect.
