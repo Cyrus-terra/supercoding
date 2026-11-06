@@ -290,7 +290,10 @@ class RepositoryTests(unittest.TestCase):
     def test_evidence_tables_keep_client_order_in_both_languages(self):
         import re
         clients = ['Claude Code', 'CodeBuddy', 'Codex', 'Gemini CLI', 'Hermes Agent', 'OpenClaw']
-        for relative in ('README.md', 'README.zh-CN.md', 'docs/installation.md', 'docs/installation.zh-CN.md'):
+        for readme, target in (('README.md', 'docs/installation.md#verification-evidence'),
+                               ('README.zh-CN.md', 'docs/installation.zh-CN.md#验证证据')):
+            self.assertIn('](' + target + ')', (self.repo / readme).read_text(encoding='utf-8'))
+        for relative in ('docs/installation.md', 'docs/installation.zh-CN.md'):
             text = (self.repo / relative).read_text(encoding='utf-8')
             table = re.search(r'\| (?:Client|客户端) \| P \| N \| L \| M \|\n(.*?)(?:\n\n|$)', text, re.DOTALL)
             self.assertIsNotNone(table, relative)
