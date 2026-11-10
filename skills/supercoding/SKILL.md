@@ -69,13 +69,13 @@ Always consider:
 2. **Simplicity:** reduce mixed responsibilities, nesting, duplicate state and dead branches. Line counts, file counts and short expressions do not replace readability. Leave unrelated modules alone.
 3. **Limits:** bound growing datasets, tasks, caches and retries; time out external calls; match concurrency to downstream capacity. Do not load everything and simulate pagination afterward.
 4. **Async work:** give appropriate feedback for perceptible waits; finalize success, failure and cancellation; prevent stale writes and duplicate submissions; define resource lifetimes.
-5. **UI:** whenever a page gains functionality, check its relationship with the existing layout, design tokens, style scope, long content, supported widths and interaction states.
+5. **UI:** whenever a page gains functionality, check its relationship with the existing layout, design tokens and style scope; select long-content, width and interaction-state checks according to what changed.
 6. **Performance:** remove waste first, then choose complex optimizations using evidence. Loading indicators, caches, parallelism and lazy loading alone do not prove improvement.
 7. **Safety and compatibility:** validate at trust boundaries, authorize on the server, parameterize queries, keep sensitive data out of logs and respect the target environment.
 
 ### 4. Verify and deliver
 
-Check small changes locally using existing commands. Use [Verification and delivery](references/verification.md) when additional guidance is needed; strengthen verification for shared capabilities, contracts, complex async work and data operations.
+Choose the smallest existing check that covers the changed behavior. Copy or local styles need a focused content/layout check, not unrelated interaction tests. Loading this Skill does not trigger tests, lint, a build or a full regression suite. Use [Verification and delivery](references/verification.md) when additional guidance is needed; strengthen verification for shared capabilities, contracts, complex async work and data operations. Reuse applicable evidence from other Skills instead of repeating checks.
 
 - Verify the requested behavior and likely failure paths, and inspect the diff for accidental changes to existing work.
 - Consider visual regression for UI changes. State when the page was not run and visuals remain unverified.

@@ -17,9 +17,11 @@ Apply to every page-functionality change, including buttons, filters, columns, v
 - Investigate containers, box models, layout and stacking contexts before adding more `!important`, huge z-indexes, negative margins or absolute positioning.
 - Fixed dimensions suit explicit design boundaries; content and filter regions need reasonable flexibility. Neither ban fixed sizes everywhere nor stretch everything unconditionally.
 
-## Required: check additions against existing layout each time
+## Required: check the affected layout and behavior
 
-Within the actual supported range, check:
+Select relevant items below by the actual change and supported range; this is not a mandatory regression suite. Copy or a local style change needs a focused content/layout check, not unrelated request failures, navigation or every interaction state. Shared styles require representative consumers; new interactions require their changed paths. Do not add tests merely to complete this list.
+
+Check where affected:
 
 1. New and existing actions: alignment, spacing, wrapping, hierarchy and obstruction of existing controls.
 2. Forms and filters: labels, inputs, validation, multiline text and dynamic fields for crowding and shifts.
@@ -48,6 +50,6 @@ Avoid making room for a new filter with an unscoped width override that breaks o
 
 ## Verification and evidence
 
-When runtime/browser tools are available, exercise the affected user journey, not just the new widget in isolation: reach it through the existing page, perform the action, observe results and failure/retry feedback, and confirm existing controls still work. Check representative states, inspecting screenshots or existing visual tests. Expand shared-style checks to representative consumers. Distinguish static inspection, current-browser checks and target-environment checks.
+For copy or local styling, inspect the affected rendered area when practical; no end-to-end flow is required unless behavior changed. For changed interactions, use available runtime/browser tools to exercise the affected path through the existing page; include failure/retry only when request, error handling or state changes make it relevant. Check representative consumers for shared-style changes. Tool availability alone does not justify broader testing, new visual-test infrastructure or a full build. Reuse applicable checks already run under other Skills. Distinguish static inspection, current-browser checks and target-environment checks.
 
 Without rendering the page, inspect style scope and layout risks, but state that actual visual verification was not performed. A successful build does not establish visual correctness.

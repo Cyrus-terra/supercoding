@@ -13,7 +13,7 @@
 | Dedicated performance work | Comparable baseline, target metrics, correctness and resource tradeoffs |
 | Dependencies, build or runtime | Types/compilation/build, relevant integration and target compatibility |
 
-Use existing project commands and tools. Start locally and expand by impact; run full checks when required by the project. Do not repeatedly rerun identical checks without new changes or unresolved risks.
+Use existing project commands and tools. Select the smallest check that covers the changed behavior; do not run lint, types, tests and builds as an automatic bundle. Start locally and expand for demonstrated shared impact, changed build/runtime mechanisms, explicit user requests or project-required gates. Reuse applicable results from other Skills for the same code, configuration and environment. Do not repeatedly rerun identical checks without new changes or unresolved risks.
 
 ## Required: diagnose before patching
 
