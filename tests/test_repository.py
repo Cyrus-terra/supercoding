@@ -20,7 +20,7 @@ class RepositoryTests(unittest.TestCase):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory(prefix="supercoding tests ")
         self.addCleanup(self.temporary.cleanup)
-        self.repo = Path(self.temporary.name) / "仓库 with spaces"
+        self.repo = Path(self.temporary.name).resolve() / "仓库 with spaces"
         shutil.copytree(ROOT, self.repo, ignore=shutil.ignore_patterns("__pycache__", ".git"))
         self.skill = self.repo / "skills/supercoding"
 
