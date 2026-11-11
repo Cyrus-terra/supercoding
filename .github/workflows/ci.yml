@@ -20,7 +20,7 @@ jobs:
             python: '3.13'
           - os: windows-latest
             python: '3.13'
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             python: '3.9'
     runs-on: ${{ matrix.os }}
     env:
@@ -41,7 +41,18 @@ jobs:
           python -B scripts/validate_skill.py
           python -B scripts/validate_skill.py skills/supercoding
       - name: Deterministic regression tests
-        run: python -B -m unittest discover -s tests -p "test_*.py" -v
+        shell: python {0}
+        run: |
+          import sys
+          import unittest
+
+          suite = unittest.defaultTestLoader.discover('tests', pattern='test_*.py')
+          result = unittest.TextTestRunner(verbosity=2).run(suite)
+          for test, traceback in result.failures + result.errors:
+              message = f'{test.id()}\n{traceback}'
+              message = message.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+              print(f'::error::{message}', flush=True)
+          sys.exit(0 if result.wasSuccessful() else 1)
       - name: Original baselines and correct controls (no model calls)
         run: python -B scripts/run_examples.py
       - name: Whitespace checks

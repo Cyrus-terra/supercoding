@@ -293,7 +293,7 @@ class ManageTests(unittest.TestCase):
         self.assertEqual(neighbor.read_bytes(), b"unrelated")
 
     def test_missing_release_never_falls_back_to_branch(self):
-        error = HTTPError("url", 404, "not found", {}, None)
+        error = HTTPError("url", 404, "not found", {}, io.BytesIO())
         self.addCleanup(error.close)
         with patch.object(manager, "api", side_effect=error) as api:
             with self.assertRaisesRegex(ValueError, "no matching stable"):
