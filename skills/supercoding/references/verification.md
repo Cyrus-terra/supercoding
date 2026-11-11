@@ -13,7 +13,9 @@
 | Dedicated performance work | Comparable baseline, target metrics, correctness and resource tradeoffs |
 | Dependencies, build or runtime | Types/compilation/build, relevant integration and target compatibility |
 
-Use existing project commands and tools. Select the smallest check that covers the changed behavior; do not run lint, types, tests and builds as an automatic bundle. Start locally and expand for demonstrated shared impact, changed build/runtime mechanisms, explicit user requests or project-required gates. Reuse applicable results from other Skills for the same code, configuration and environment. Do not repeatedly rerun identical checks without new changes or unresolved risks.
+The current agent selects and performs verification for the task, combining applicable Skill constraints with the changed behavior and project-required gates. Skills supply risk criteria, not separate closing workflows: do not reread all rules, recheck the same diff or introduce a review agent merely because multiple Skills apply. This does not waive relevant correctness checks or an explicitly requested review.
+
+Use existing project commands and tools. Select the smallest check that covers the changed behavior; do not run lint, types, tests and builds as an automatic bundle. Start locally and expand for demonstrated shared impact, changed build/runtime mechanisms, explicit user requests or project-required gates. Reuse applicable results for the same code, configuration and environment, regardless of which Skill informed them. Do not rerun checks after loading/reminders alone or without new changes or unresolved risks.
 
 ## Required: diagnose before patching
 

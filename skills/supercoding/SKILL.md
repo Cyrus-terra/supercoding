@@ -75,7 +75,7 @@ Always consider:
 
 ### 4. Verify and deliver
 
-Choose the smallest existing check that covers the changed behavior. Copy or local styles need a focused content/layout check, not unrelated interaction tests. Loading this Skill does not trigger tests, lint, a build or a full regression suite. Use [Verification and delivery](references/verification.md) when additional guidance is needed; strengthen verification for shared capabilities, contracts, complex async work and data operations. Reuse applicable evidence from other Skills instead of repeating checks.
+The current agent owns task-level verification, using applicable Skill rules as implementation constraints and risk criteria. Combine relevant checks across Skills in the normal task workflow; do not add a separate closing review, full-rule checklist or review agent for each Skill. Choose the smallest existing check that covers the changed behavior and follow project-required gates. Copy or local styles need a focused content/layout check, not unrelated interaction tests. Loading or receiving a reminder does not add a verification round. Use [Verification and delivery](references/verification.md) for shared capabilities, contracts, complex async work or data operations; reuse applicable evidence.
 
 - Verify the requested behavior and likely failure paths, and inspect the diff for accidental changes to existing work.
 - Consider visual regression for UI changes. State when the page was not run and visuals remain unverified.
